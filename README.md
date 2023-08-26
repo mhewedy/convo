@@ -1,6 +1,6 @@
 # Convo
 
-Conversation Manager
+The Conversation Repository
 
 
 **still need testing**

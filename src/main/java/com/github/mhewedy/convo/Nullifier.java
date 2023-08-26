@@ -37,7 +37,7 @@ class Nullifier {
             throw new RuntimeException("you can not update more than one step at atime. " + fromUser +
                     ", you try to update fields: " + updatedFields);
         }
-        if (updatedSteps.size() > 0)
+        if (!updatedSteps.isEmpty())
             nullifyNextSteps(fromUser, updatedSteps.get(0));
     }
 
