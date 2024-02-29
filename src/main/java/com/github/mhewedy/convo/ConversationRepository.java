@@ -36,6 +36,7 @@ public class ConversationRepository {
             throw new ConversationException("object_is_null");
         }
 
+        setVersionIfNew(t);
         setIdIfNull(t);
         t.ownerId = ownerId;
         nullifier.nullifyNextStepsFields(t);
@@ -50,11 +51,13 @@ public class ConversationRepository {
      * @throws ConversationException in case no conversation found by the provided id
      */
     public <T extends AbstractConversationHolder> T findById(Object ownerId, String id, Class<T> clazz) {
-        return template.findById(id, clazz)
+        T object = template.findById(id, clazz)
                 .filter(it -> ownerId.equals(it.ownerId))
                 .orElseThrow(() -> new ConversationException("invalid_conversation_user_combination",
                         Map.of("conversationId", id, "userId", ownerId))
                 );
+        validateVersionIfRequired(object);
+        return object;
     }
 
     /**
@@ -74,6 +77,22 @@ public class ConversationRepository {
         });
     }
 
+    private <T extends AbstractConversationHolder> void setVersionIfNew(T t) {
+        if (t.id == null && t.getClass().isAnnotationPresent(Version.class)) {
+            t.version = t.getClass().getAnnotation(Version.class).value();
+            log.debug("creating conversation of type {} with version: {}", t.getClass().getSimpleName(), t.version);
+        }
+    }
+
+    private <T extends AbstractConversationHolder> void validateVersionIfRequired(T t) {
+        if (t.getClass().isAnnotationPresent(Version.class)) {
+            String currentVersion = t.getClass().getAnnotation(Version.class).value();
+            if (!currentVersion.equalsIgnoreCase(t.version)) {
+                throw new ConversationException("invalid_conversation_version", "conversationId", t.id);
+            }
+        }
+    }
+
     private <T extends AbstractConversationHolder> void setIdIfNull(T t) {
         if (t.id == null) {
             var baggageField = BaggageField.getByName(Constants.CONVERSATION_TRACE_FIELD);
@@ -82,7 +101,7 @@ public class ConversationRepository {
             } else {
                 t.id = TraceUtil.getId(tracer);
             }
-            log.debug("setting conversation id with value: {}", t.id);
+            log.debug("setting conversation id with value: {}, type: {}", t.id, t.getClass().getSimpleName());
         }
     }
 
@@ -95,5 +114,6 @@ public class ConversationRepository {
         public String id;
         @JsonIgnore
         public Object ownerId;
+        public String version;
     }
 }
