@@ -10,7 +10,7 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.data.redis.core.RedisKeyValueTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 @Configuration
@@ -33,9 +33,9 @@ public class ConvoAutoConfiguration {
     @Bean
     @Primary
     @ConditionalOnMissingBean
-    @ConditionalOnClass(RedisKeyValueTemplate.class)
-    public RedisStoreRepository redisStoreRepository() {
-        return new RedisStoreRepository();
+    @ConditionalOnClass(RedisTemplate.class)
+    public RedisStoreRepository redisStoreRepository(RedisTemplate<String, AbstractConversationHolder> redisTemplate) {
+        return new RedisStoreRepository(redisTemplate);
     }
 
     @Bean

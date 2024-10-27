@@ -8,12 +8,15 @@ import java.util.Optional;
 // Not tested yet!
 public class RedisStoreRepository implements StoreRepository {
 
-    private RedisTemplate<String, AbstractConversationHolder> redisTemplate;
+    private final RedisTemplate<String, AbstractConversationHolder> redisTemplate;
+
+    public RedisStoreRepository(RedisTemplate<String, AbstractConversationHolder> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     @Override
     public <T extends AbstractConversationHolder> void update(T t) {
-        redisTemplate.opsForValue().set(t.id, t);
-        redisTemplate.expire(t.id, Util.getTimeToLive(t));
+        redisTemplate.opsForValue().set(t.id, t, Util.getTimeToLive(t));
     }
 
     @Override
