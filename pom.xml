@@ -78,7 +78,7 @@
     <build>
         <plugins>
             <!-- for codecov-->
-            <!--<plugin>
+            <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.8</version>
@@ -99,7 +99,7 @@
                 </executions>
             </plugin>
 
-            &lt;!&ndash; for deploy to maven central&ndash;&gt;
+            <!-- for deploy to maven central-->
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
@@ -110,7 +110,7 @@
                     <nexusUrl>https://oss.sonatype.org/</nexusUrl>
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
-            </plugin>-->
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
@@ -124,7 +124,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <!--<plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>2.9.1</version>
@@ -151,13 +151,13 @@
                     </execution>
                 </executions>
                 <configuration>
-                    &lt;!&ndash; Prevent gpg from using pinentry programs &ndash;&gt;
+                    <!-- Prevent gpg from using pinentry programs -->
                     <gpgArguments>
-                        <arg>&#45;&#45;pinentry-mode</arg>
+                        <arg>--pinentry-mode</arg>
                         <arg>loopback</arg>
                     </gpgArguments>
                 </configuration>
-            </plugin>-->
+            </plugin>
 
         </plugins>
     </build>
