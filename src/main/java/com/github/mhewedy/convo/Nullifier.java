@@ -2,25 +2,22 @@ package com.github.mhewedy.convo;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisKeyValueTemplate;
 
 import java.lang.reflect.Field;
 import java.util.List;
 
-import static com.github.mhewedy.convo.ConversationRepository.AbstractConversationHolder;
 import static com.github.mhewedy.convo.FieldIterator.onEachField;
 
 @Slf4j
 class Nullifier {
 
     private final ObjectMapper objectMapper;
-    private final RedisKeyValueTemplate template;
+    private final StoreRepository storeRepository;
 
-    public Nullifier(ObjectMapper objectMapper, RedisKeyValueTemplate template) {
+    public Nullifier(ObjectMapper objectMapper, StoreRepository storeRepository) {
         this.objectMapper = objectMapper;
-        this.template = template;
+        this.storeRepository = storeRepository;
     }
 
     <T extends AbstractConversationHolder> void nullifyNextStepsFields(T fromUser) {
@@ -67,9 +64,9 @@ class Nullifier {
     }
 
     private <T extends AbstractConversationHolder> List<Field> getUpdatedFields(T fromUser) {
-        var fromRedis = template.findById(fromUser.id, fromUser.getClass()).orElse(null);
+        var fromRedis = storeRepository.findById(fromUser.id, fromUser.getClass()).orElse(null);
 
-        return onEachField(fromUser, field-> {
+        return onEachField(fromUser, field -> {
 
             var valueFromUser = field.get(fromUser);
             if (fromRedis == null) {
