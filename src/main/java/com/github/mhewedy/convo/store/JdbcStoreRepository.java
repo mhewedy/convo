@@ -103,7 +103,7 @@ public class JdbcStoreRepository implements StoreRepository {
             );
             if (Instant.now().isAfter(value.expiresAt)) {
                 log.debug("conversation with id: {}, conversation class: {} has expired!", id, clazz.getSimpleName());
-                //delete(value);
+                delete(value);
                 return Optional.empty();
             } else {
                 return Optional.of(value);
