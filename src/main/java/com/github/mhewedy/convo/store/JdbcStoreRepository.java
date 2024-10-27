@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.mhewedy.convo.AbstractConversationHolder;
 import com.github.mhewedy.convo.ConversationException;
-import com.github.mhewedy.convo.annotations.Ttl;
+import com.github.mhewedy.convo.annotations.TimeToLive;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -62,11 +61,7 @@ public class JdbcStoreRepository implements StoreRepository {
                 throw new ConversationException("failed to update object");
             }
         } else {
-            var ttl = Duration.ofMinutes(30);
-            if (t.getClass().isAnnotationPresent(Ttl.class)) {
-                ttl = Duration.parse(t.getClass().getAnnotation(Ttl.class).value());
-            }
-            t.expiresAt = Instant.now().plus(ttl);
+            t.expiresAt = Instant.now().plus(getTimeToLive(t));
             var map = new HashMap<String, Object>();
             map.put("id", t.id);
             map.put("owner_id", t.ownerId);
@@ -149,6 +144,19 @@ public class JdbcStoreRepository implements StoreRepository {
         try {
             return objectMapper.writeValueAsString(t);
         } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private <T extends AbstractConversationHolder> Duration getTimeToLive(T t) {
+        String ttlStr;
+        try {
+            ttlStr = (String) TimeToLive.class.getMethod("duration").getDefaultValue();
+            if (t.getClass().isAnnotationPresent(TimeToLive.class)) {
+                ttlStr = t.getClass().getAnnotation(TimeToLive.class).duration();
+            }
+            return Duration.parse(ttlStr);
+        } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
     }
