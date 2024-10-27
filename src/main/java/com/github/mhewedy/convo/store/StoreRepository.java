@@ -1,7 +1,9 @@
 package com.github.mhewedy.convo.store;
 
 import com.github.mhewedy.convo.AbstractConversationHolder;
+import com.github.mhewedy.convo.annotations.TimeToLive;
 
+import java.time.Duration;
 import java.util.Optional;
 
 public interface StoreRepository {

@@ -1,24 +1,29 @@
 package com.github.mhewedy.convo.store;
 
 import com.github.mhewedy.convo.AbstractConversationHolder;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.Optional;
 
-// TODO
+// Not tested yet!
 public class RedisStoreRepository implements StoreRepository {
+
+    private RedisTemplate<String, AbstractConversationHolder> redisTemplate;
 
     @Override
     public <T extends AbstractConversationHolder> void update(T t) {
-        throw new UnsupportedOperationException();
+        redisTemplate.opsForValue().set(t.id, t);
+        redisTemplate.expire(t.id, Util.getTimeToLive(t));
     }
 
     @Override
     public <T extends AbstractConversationHolder> Optional<T> findById(String id, Class<T> clazz) {
-        throw new UnsupportedOperationException();
+        AbstractConversationHolder holder = redisTemplate.opsForValue().get(id);
+        return Optional.ofNullable(clazz.cast(holder));
     }
 
     @Override
     public <T extends AbstractConversationHolder> void delete(T it) {
-        throw new UnsupportedOperationException();
+        redisTemplate.delete(it.id);
     }
 }

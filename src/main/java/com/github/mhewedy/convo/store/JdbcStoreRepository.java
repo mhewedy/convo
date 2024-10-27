@@ -61,7 +61,7 @@ public class JdbcStoreRepository implements StoreRepository {
                 throw new ConversationException("failed to update object");
             }
         } else {
-            t.expiresAt = Instant.now().plus(getTimeToLive(t));
+            t.expiresAt = Instant.now().plus(Util.getTimeToLive(t));
             var map = new HashMap<String, Object>();
             map.put("id", t.id);
             map.put("owner_id", t.ownerId);
@@ -144,19 +144,6 @@ public class JdbcStoreRepository implements StoreRepository {
         try {
             return objectMapper.writeValueAsString(t);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private <T extends AbstractConversationHolder> Duration getTimeToLive(T t) {
-        String ttlStr;
-        try {
-            ttlStr = (String) TimeToLive.class.getMethod("duration").getDefaultValue();
-            if (t.getClass().isAnnotationPresent(TimeToLive.class)) {
-                ttlStr = t.getClass().getAnnotation(TimeToLive.class).duration();
-            }
-            return Duration.parse(ttlStr);
-        } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
     }
