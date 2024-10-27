@@ -7,16 +7,6 @@ public interface IdGenerator {
 
     String generateNewConversationId();
 
-    static String getConversationId(IdGenerator idGenerator) {
-        var idFromRequest = getConversationIdFromRequest();
-
-        if (idFromRequest != null) {
-            return idFromRequest;
-        } else {
-            return idGenerator.generateNewConversationId();
-        }
-    }
-
     static String getConversationIdFromRequest() {
         var attrs = RequestContextHolder.getRequestAttributes();
         return attrs == null ? null :

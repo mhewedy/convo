@@ -1,13 +1,15 @@
 package com.github.mhewedy.convo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.mhewedy.convo.jdbc.JdbcStoreRepository;
-import com.github.mhewedy.convo.redis.RedisStoreRepository;
+import com.github.mhewedy.convo.store.JdbcStoreRepository;
+import com.github.mhewedy.convo.store.RedisStoreRepository;
+import com.github.mhewedy.convo.store.StoreRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.core.RedisKeyValueTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
@@ -29,6 +31,7 @@ public class ConvoAutoConfiguration {
     }
 
     @Bean
+    @Primary
     @ConditionalOnMissingBean
     @ConditionalOnClass(RedisKeyValueTemplate.class)
     public RedisStoreRepository redisStoreRepository() {

@@ -1,6 +1,8 @@
 package com.github.mhewedy.convo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.mhewedy.convo.annotations.Version;
+import com.github.mhewedy.convo.store.StoreRepository;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
@@ -88,8 +90,17 @@ public class ConversationRepository {
 
     private <T extends AbstractConversationHolder> void setIdIfNull(T t) {
         if (t.id == null) {
-            t.id = IdGenerator.getConversationId(idGenerator);
+            t.id = getConversationId(idGenerator);
             log.debug("setting conversation id with value: {}, type: {}", t.id, t.getClass().getSimpleName());
+        }
+    }
+
+    private String getConversationId(IdGenerator idGenerator) {
+        var idFromRequest = IdGenerator.getConversationIdFromRequest();
+        if (idFromRequest != null) {
+            return idFromRequest;
+        } else {
+            return idGenerator.generateNewConversationId();
         }
     }
 }

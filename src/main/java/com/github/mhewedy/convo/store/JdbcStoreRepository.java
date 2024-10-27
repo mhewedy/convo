@@ -1,10 +1,10 @@
-package com.github.mhewedy.convo.jdbc;
+package com.github.mhewedy.convo.store;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.mhewedy.convo.AbstractConversationHolder;
 import com.github.mhewedy.convo.ConversationException;
-import com.github.mhewedy.convo.StoreRepository;
+import com.github.mhewedy.convo.annotations.Ttl;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -12,6 +12,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
@@ -61,7 +62,11 @@ public class JdbcStoreRepository implements StoreRepository {
                 throw new ConversationException("failed to update object");
             }
         } else {
-            t.expiresAt = Instant.now().plus(30, ChronoUnit.MINUTES);
+            var ttl = Duration.ofMinutes(30);
+            if (t.getClass().isAnnotationPresent(Ttl.class)) {
+                ttl = Duration.parse(t.getClass().getAnnotation(Ttl.class).value());
+            }
+            t.expiresAt = Instant.now().plus(ttl);
             var map = new HashMap<String, Object>();
             map.put("id", t.id);
             map.put("owner_id", t.ownerId);

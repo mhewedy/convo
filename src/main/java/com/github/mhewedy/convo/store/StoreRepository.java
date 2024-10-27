@@ -1,4 +1,6 @@
-package com.github.mhewedy.convo;
+package com.github.mhewedy.convo.store;
+
+import com.github.mhewedy.convo.AbstractConversationHolder;
 
 import java.util.Optional;
 

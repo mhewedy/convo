@@ -1,4 +1,4 @@
-package com.github.mhewedy.convo;
+package com.github.mhewedy.convo.annotations;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
