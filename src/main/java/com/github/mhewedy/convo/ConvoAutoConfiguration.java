@@ -15,10 +15,10 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 public class ConvoAutoConfiguration {
 
     @Bean
-    public ConversationRepository conversationRepository(IdManager idManager,
+    public ConversationRepository conversationRepository(IdGenerator idGenerator,
                                                          ObjectMapper objectMapper,
                                                          StoreRepository storeRepository) {
-        return new ConversationRepository(idManager, objectMapper, storeRepository);
+        return new ConversationRepository(idGenerator, objectMapper, storeRepository);
     }
 
     @Bean
