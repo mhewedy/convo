@@ -4,7 +4,6 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.github.mhewedy.convo.ConversationRepository.AbstractConversationHolder;
 import static org.springframework.util.ReflectionUtils.doWithFields;
 
 class FieldIterator {
@@ -28,7 +27,7 @@ class FieldIterator {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-        }, field -> !List.of("ownerId", "id", "version").contains(field.getName()));
+        }, field -> !List.of("ownerId", "id", "version", "expiresAt").contains(field.getName()));
         return ret;
     }
 

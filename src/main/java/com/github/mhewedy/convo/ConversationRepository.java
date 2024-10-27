@@ -1,28 +1,23 @@
 package com.github.mhewedy.convo;
 
-import brave.baggage.BaggageField;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.micrometer.tracing.Tracer;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.redis.core.RedisKeyValueTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 
 import java.util.Map;
 
 @Slf4j
-@Component
 public class ConversationRepository {
 
-    private final Tracer tracer;
+    private final IdManager idManager;
     private final Nullifier nullifier;
-    private final RedisKeyValueTemplate template;
+    private final StoreRepository storeRepository;
 
-    public ConversationRepository(Tracer tracer, ObjectMapper objectMapper, RedisKeyValueTemplate template) {
-        this.tracer = tracer;
-        this.template = template;
-        this.nullifier = new Nullifier(objectMapper, template);
+    public ConversationRepository(IdManager idManager, ObjectMapper objectMapper, StoreRepository storeRepository) {
+        this.idManager = idManager;
+        this.storeRepository = storeRepository;
+        this.nullifier = new Nullifier(objectMapper, storeRepository);
     }
 
     /**
@@ -40,7 +35,7 @@ public class ConversationRepository {
         setIdIfNull(t);
         t.ownerId = ownerId;
         nullifier.nullifyNextStepsFields(t);
-        template.update(t);
+        storeRepository.update(t);
     }
 
     /**
@@ -51,10 +46,10 @@ public class ConversationRepository {
      * @throws ConversationException in case no conversation found by the provided id
      */
     public <T extends AbstractConversationHolder> T findById(Object ownerId, String id, Class<T> clazz) {
-        T object = template.findById(id, clazz)
-                .filter(it -> ownerId.equals(it.ownerId))
+        T object = storeRepository.findById(id, clazz)
+                .filter(it -> ownerId == null || ownerId.equals(it.ownerId))
                 .orElseThrow(() -> new ConversationException("invalid_conversation_user_combination",
-                        Map.of("conversationId", id, "userId", ownerId))
+                        Map.of("conversationId", id, "userId", ownerId + ""))
                 );
         validateVersionIfRequired(object);
         return object;
@@ -67,13 +62,13 @@ public class ConversationRepository {
      * @param ownerId and object that owns the conversation object.
      */
     public <T extends AbstractConversationHolder> void remove(Object ownerId, String id, Class<T> clazz) {
-        var objectToRemove = template.findById(id, clazz);
+        var objectToRemove = storeRepository.findById(id, clazz);
         objectToRemove.ifPresent(it -> {
-            if (!ownerId.equals(it.ownerId)) {
+            if (ownerId != null && !ownerId.equals(it.ownerId)) {
                 throw new ConversationException("invalid_conversation_user_combination",
                         Map.of("conversationId", id, "userId", ownerId));
             }
-            template.delete(it);
+            storeRepository.delete(it);
         });
     }
 
@@ -95,25 +90,17 @@ public class ConversationRepository {
 
     private <T extends AbstractConversationHolder> void setIdIfNull(T t) {
         if (t.id == null) {
-            var baggageField = BaggageField.getByName(Constants.CONVERSATION_TRACE_FIELD);
-            if (baggageField != null && baggageField.getValue() != null) {
-                t.id = baggageField.getValue();
+
+            var attrs = RequestContextHolder.getRequestAttributes();
+            String idFromRequest = attrs == null ? null :
+                    (String) attrs.getAttribute(Constants.CONVERSATION_FIELD, RequestAttributes.SCOPE_REQUEST);
+
+            if (idFromRequest != null) {
+                t.id = idFromRequest;
             } else {
-                t.id = TraceUtil.getId(tracer);
+                t.id = idManager.getConversationId();
             }
             log.debug("setting conversation id with value: {}, type: {}", t.id, t.getClass().getSimpleName());
         }
-    }
-
-    /**
-     * Base class for all conversation holder.
-     * All subclasses should be cached in redis with TTL
-     */
-    public static abstract class AbstractConversationHolder {
-        @Id
-        public String id;
-        @JsonIgnore
-        public Object ownerId;
-        public String version;
     }
 }
