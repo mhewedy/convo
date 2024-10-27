@@ -7,7 +7,7 @@ The Conversation Repository
 <dependency>
   <groupId>com.github.mhewedy</groupId>
   <artifactId>convo</artifactId>
-  <version>0.0.1</version>
+  <version>0.0.2</version>
 </dependency>
 ```
 
