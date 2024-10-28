@@ -24,21 +24,6 @@ public class ConvoAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnMissingBean
-    @ConditionalOnClass(NamedParameterJdbcTemplate.class)
-    public JdbcStoreRepository jdbcStoreRepository(NamedParameterJdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
-        return new JdbcStoreRepository(objectMapper, jdbcTemplate);
-    }
-
-    @Bean
-    @Primary
-    @ConditionalOnMissingBean
-    @ConditionalOnClass(RedisTemplate.class)
-    public RedisStoreRepository redisStoreRepository(RedisTemplate<String, AbstractConversationHolder> redisTemplate) {
-        return new RedisStoreRepository(redisTemplate);
-    }
-
-    @Bean
     public FilterRegistrationBean<ConversationFilter> conversationFilter() {
         FilterRegistrationBean<ConversationFilter> registrationBean = new FilterRegistrationBean<>();
 
@@ -47,5 +32,29 @@ public class ConvoAutoConfiguration {
         registrationBean.setOrder(1);
 
         return registrationBean;
+    }
+
+
+    @Configuration
+    @ConditionalOnClass(RedisTemplate.class)
+    public static class RedisConfig {
+
+        @Bean
+        @Primary
+        @ConditionalOnMissingBean
+        public RedisStoreRepository redisStoreRepository(RedisTemplate<String, AbstractConversationHolder> redisTemplate) {
+            return new RedisStoreRepository(redisTemplate);
+        }
+    }
+
+    @Configuration
+    @ConditionalOnClass(NamedParameterJdbcTemplate.class)
+    public static class JdbcConfig {
+
+        @Bean
+        @ConditionalOnMissingBean
+        public JdbcStoreRepository jdbcStoreRepository(NamedParameterJdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
+            return new JdbcStoreRepository(objectMapper, jdbcTemplate);
+        }
     }
 }
