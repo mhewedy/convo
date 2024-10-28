@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
+ * This implementation requires a table with the following structure
  * <pre>
  * create table conversation_holder
  * (
@@ -28,6 +29,7 @@ import java.util.Optional;
  *     conversation_value varchar(8000)
  * );
  * </pre>
+ * Note: the column sizes are usage dependent, you can change based on your usage.
  */
 @Log4j2
 public class JdbcStoreRepository implements StoreRepository {
@@ -44,6 +46,9 @@ public class JdbcStoreRepository implements StoreRepository {
     @Transactional
     public <T extends AbstractConversationHolder> void update(T t) {
         if (exists(t)) {
+            if (log.isTraceEnabled()) {
+                log.trace("conversation for class: {} already exists, updating...", t.getClass().getName());
+            }
             int update = jdbcTemplate.update("""
                             UPDATE conversation_holder
                             SET conversation_value = :conversation_value
@@ -59,6 +64,9 @@ public class JdbcStoreRepository implements StoreRepository {
                 throw new ConversationException("failed to update object");
             }
         } else {
+            if (log.isTraceEnabled()) {
+                log.trace("conversation for class: {} already not exists, creating...", t.getClass().getName());
+            }
             t.expiresAt = Instant.now().plus(Util.getTimeToLive(t));
             var map = new HashMap<String, Object>();
             map.put("id", t.id);
@@ -81,6 +89,9 @@ public class JdbcStoreRepository implements StoreRepository {
 
     @Override
     public <T extends AbstractConversationHolder> Optional<T> findById(String id, Class<T> clazz) {
+        if (log.isTraceEnabled()) {
+            log.trace("find conversation with id: {}, class: {}", id, clazz.getSimpleName());
+        }
         try {
             T value = jdbcTemplate.queryForObject("""
                             SELECT id, owner_id, version, expires_at, conversation_class, conversation_value
@@ -100,14 +111,18 @@ public class JdbcStoreRepository implements StoreRepository {
                     }
             );
             if (Instant.now().isAfter(value.expiresAt)) {
-                log.debug("conversation with id: {}, conversation class: {} has expired!", id, clazz.getSimpleName());
+                if (log.isDebugEnabled()) {
+                    log.debug("conversation with id: {}, conversation class: {} has expired!", id, clazz.getSimpleName());
+                }
                 delete(value);
                 return Optional.empty();
             } else {
                 return Optional.of(value);
             }
         } catch (EmptyResultDataAccessException ex) {
-            log.warn(ex.getMessage());
+            if (log.isDebugEnabled()) {
+                log.debug("cannot find conversation object with id: {}, class: {}, reason: {}", id, clazz, ex.getMessage());
+            }
             return Optional.empty();
         }
     }
@@ -115,6 +130,9 @@ public class JdbcStoreRepository implements StoreRepository {
     @Override
     @Transactional
     public <T extends AbstractConversationHolder> void delete(T t) {
+        if (log.isTraceEnabled()) {
+            log.trace("deleting conversation with id: {}, class: {}", t.id, t.getClass().getSimpleName());
+        }
         jdbcTemplate.update("""
                         DELETE FROM conversation_holder
                         WHERE id = :id and conversation_class = :conversation_class
