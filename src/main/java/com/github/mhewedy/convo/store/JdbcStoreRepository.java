@@ -88,6 +88,7 @@ public class JdbcStoreRepository implements StoreRepository {
     }
 
     @Override
+    @Transactional
     public <T extends AbstractConversationHolder> Optional<T> findById(String id, Class<T> clazz) {
         if (log.isTraceEnabled()) {
             log.trace("find conversation with id: {}, class: {}", id, clazz.getSimpleName());
