@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.mhewedy.convo.annotations.Version;
 import com.github.mhewedy.convo.store.StoreRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.lang.Nullable;
 
 import java.util.Map;
 
@@ -21,12 +22,9 @@ public class ConversationRepository {
     }
 
     /**
-     * Used only with public APIs, where there's no user in the context used as ownerId.
-     * <p>
-     *
-     * @param ownerId and object that owns the conversation object.
+     * @param ownerId is the object that owns the conversation object, usually the current user id
      */
-    public <T extends AbstractConversationHolder> void update(Object ownerId, T t) {
+    public <T extends AbstractConversationHolder> void update(@Nullable Object ownerId, T t) {
         if (t == null) {
             throw new ConversationException("object_is_null");
         }
@@ -39,13 +37,10 @@ public class ConversationRepository {
     }
 
     /**
-     * Used only with public APIs, where there's no user in the context used as ownerId
-     * <p>
-     *
-     * @param ownerId and object that owns the conversation object.
+     * @param ownerId is the object that owns the conversation object, usually the current user id
      * @throws ConversationException in case no conversation found by the provided id
      */
-    public <T extends AbstractConversationHolder> T findById(Object ownerId, String id, Class<T> clazz) {
+    public <T extends AbstractConversationHolder> T findById(@Nullable Object ownerId, String id, Class<T> clazz) {
         T object = storeRepository.findById(id, clazz)
                 .filter(it -> ownerId == null || ownerId.equals(it.ownerId))
                 .orElseThrow(() -> new ConversationException("invalid_conversation_user_combination",
@@ -56,12 +51,9 @@ public class ConversationRepository {
     }
 
     /**
-     * Used only with public APIs, where there's no user in the context used as ownerId
-     * <p>
-     *
-     * @param ownerId and object that owns the conversation object.
+     * @param ownerId is the object that owns the conversation object, usually the current user id
      */
-    public <T extends AbstractConversationHolder> void remove(Object ownerId, String id, Class<T> clazz) {
+    public <T extends AbstractConversationHolder> void remove(@Nullable Object ownerId, String id, Class<T> clazz) {
         var objectToRemove = storeRepository.findById(id, clazz);
         objectToRemove.ifPresent(it -> {
             if (ownerId != null && !ownerId.equals(it.ownerId)) {
