@@ -34,3 +34,6 @@ You always can override this default resolution using `convo.store=redis|jdbc`
 
 ## Usage
 TODO
+
+## Demo
+See https://github.com/mhewedy/convo-demo

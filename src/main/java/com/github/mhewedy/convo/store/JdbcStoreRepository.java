@@ -29,7 +29,11 @@ import java.util.Optional;
  *     conversation_value varchar(8000)
  * );
  * </pre>
- * Note: the column sizes are usage dependent, you can change based on your usage.
+ * It is also recommended to create an index on expires_at column as follows:
+ * <pre>
+ * create index idx_conversation_holder_expires_at on conversation_holder (expires_at)
+ * </pre>
+ * Note: the column datatypes and sizes are usage DBMS-dependent, you can change based on your needs.
  */
 @Slf4j
 public class JdbcStoreRepository implements StoreRepository {
