@@ -16,7 +16,10 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 @Configuration
@@ -47,10 +50,23 @@ public class ConvoAutoConfiguration {
     public static class RedisConfig {
 
         @Bean
+        @ConditionalOnMissingBean
+        @ConditionalOnProperty(value = "convo.store", havingValue = "redis", matchIfMissing = true)
+        public RedisTemplate<String, AbstractConversationHolder> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+            RedisTemplate<String, AbstractConversationHolder> template = new RedisTemplate<>();
+            template.setConnectionFactory(redisConnectionFactory);
+
+            template.setKeySerializer(new StringRedisSerializer());
+            template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+
+            return template;
+        }
+
+        @Bean
         @Primary
         @ConditionalOnMissingBean
         @ConditionalOnProperty(value = "convo.store", havingValue = "redis", matchIfMissing = true)
-        public RedisStoreRepository redisStoreRepository(RedisTemplate<Object, Object> redisTemplate) {
+        public RedisStoreRepository redisStoreRepository(RedisTemplate<String, AbstractConversationHolder> redisTemplate) {
             return new RedisStoreRepository(redisTemplate);
         }
     }
