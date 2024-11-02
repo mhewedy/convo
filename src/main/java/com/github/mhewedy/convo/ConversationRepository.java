@@ -60,7 +60,7 @@ public class ConversationRepository {
                 throw new ConversationException("invalid_conversation_user_combination",
                         Map.of("conversationId", id, "userId", ownerId));
             }
-            storeRepository.delete(it);
+            storeRepository.remove(it);
         });
     }
 

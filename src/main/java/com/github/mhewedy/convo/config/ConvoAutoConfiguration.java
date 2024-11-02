@@ -22,6 +22,9 @@ import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSeriali
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+
 @Configuration
 @EnableConfigurationProperties(ConvoProperties.class)
 public class ConvoAutoConfiguration {
@@ -78,8 +81,14 @@ public class ConvoAutoConfiguration {
         @Bean
         @ConditionalOnMissingBean
         @ConditionalOnProperty(value = "convo.store", havingValue = "jdbc", matchIfMissing = true)
-        public JdbcStoreRepository jdbcStoreRepository(NamedParameterJdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
-            return new JdbcStoreRepository(objectMapper, jdbcTemplate);
+        public JdbcStoreRepository jdbcStoreRepository(NamedParameterJdbcTemplate jdbcTemplate, ObjectMapper objectMapper,
+                                                       ConvoProperties properties, ScheduledExecutorService cleanupExecutorService) {
+            return new JdbcStoreRepository(objectMapper, jdbcTemplate, properties, cleanupExecutorService);
         }
+    }
+
+    @Bean
+    public ScheduledExecutorService cleanupExecutorService() {
+        return Executors.newSingleThreadScheduledExecutor();
     }
 }

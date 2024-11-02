@@ -25,7 +25,7 @@ public class RedisStoreRepository implements StoreRepository {
     }
 
     @Override
-    public <T extends AbstractConversationHolder> void delete(T it) {
+    public <T extends AbstractConversationHolder> void remove(T it) {
         redisTemplate.delete(it.id);
     }
 }
