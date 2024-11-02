@@ -8,9 +8,9 @@ import java.util.Optional;
 // Not tested yet!
 public class RedisStoreRepository implements StoreRepository {
 
-    private final RedisTemplate<String, AbstractConversationHolder> redisTemplate;
+    private final RedisTemplate<Object, Object> redisTemplate;
 
-    public RedisStoreRepository(RedisTemplate<String, AbstractConversationHolder> redisTemplate) {
+    public RedisStoreRepository(RedisTemplate<Object, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
@@ -21,7 +21,7 @@ public class RedisStoreRepository implements StoreRepository {
 
     @Override
     public <T extends AbstractConversationHolder> Optional<T> findById(String id, Class<T> clazz) {
-        AbstractConversationHolder holder = redisTemplate.opsForValue().get(id);
+        AbstractConversationHolder holder = (AbstractConversationHolder) redisTemplate.opsForValue().get(id);
         return Optional.ofNullable(clazz.cast(holder));
     }
 

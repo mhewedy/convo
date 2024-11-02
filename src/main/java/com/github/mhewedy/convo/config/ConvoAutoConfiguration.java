@@ -50,7 +50,7 @@ public class ConvoAutoConfiguration {
         @Primary
         @ConditionalOnMissingBean
         @ConditionalOnProperty(value = "convo.store", havingValue = "redis", matchIfMissing = true)
-        public RedisStoreRepository redisStoreRepository(RedisTemplate<String, AbstractConversationHolder> redisTemplate) {
+        public RedisStoreRepository redisStoreRepository(RedisTemplate<Object, Object> redisTemplate) {
             return new RedisStoreRepository(redisTemplate);
         }
     }
