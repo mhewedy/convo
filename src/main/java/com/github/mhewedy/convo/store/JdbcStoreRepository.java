@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.mhewedy.convo.AbstractConversationHolder;
 import com.github.mhewedy.convo.ConversationException;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -31,7 +31,7 @@ import java.util.Optional;
  * </pre>
  * Note: the column sizes are usage dependent, you can change based on your usage.
  */
-@Log4j2
+@Slf4j
 public class JdbcStoreRepository implements StoreRepository {
 
     private final ObjectMapper objectMapper;
