@@ -96,11 +96,13 @@ public class ConversationRepository {
     }
 
     private String getConversationId(IdGenerator idGenerator) {
-        var idFromRequest = IdGenerator.getConversationIdFromRequest();
-        if (idFromRequest != null) {
-            return idFromRequest;
+        var currentId = ConversationFilter.getCurrentConversationId();
+        if (currentId != null) {
+            return currentId;
         } else {
-            return idGenerator.generateNewConversationId();
+            var newId = idGenerator.generateNewConversationId();
+            ConversationFilter.setCurrentConversationId(newId);
+            return newId;
         }
     }
 }
