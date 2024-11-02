@@ -27,7 +27,7 @@ class FieldIterator {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-        }, field -> !List.of("ownerId", "id", "version", "expiresAt").contains(field.getName()));
+        }, field -> !List.of("id", "_ownerId", "_version", "_expiresAt").contains(field.getName()));
         return ret;
     }
 

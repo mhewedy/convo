@@ -31,7 +31,7 @@ public class ConversationRepository {
 
         setVersionIfNew(t);
         setIdIfNull(t);
-        t.ownerId = ownerId;
+        t._ownerId = ownerId;
         nullifier.nullifyNextStepsFields(t);
         storeRepository.update(t);
     }
@@ -42,7 +42,7 @@ public class ConversationRepository {
      */
     public <T extends AbstractConversationHolder> T findById(@Nullable Object ownerId, String id, Class<T> clazz) {
         T object = storeRepository.findById(id, clazz)
-                .filter(it -> ownerId == null || ownerId.equals(it.ownerId))
+                .filter(it -> ownerId == null || ownerId.equals(it._ownerId))
                 .orElseThrow(() -> new ConversationException("invalid_conversation_user_combination",
                         Map.of("conversationId", id, "userId", ownerId + ""))
                 );
@@ -56,7 +56,7 @@ public class ConversationRepository {
     public <T extends AbstractConversationHolder> void remove(@Nullable Object ownerId, String id, Class<T> clazz) {
         var objectToRemove = storeRepository.findById(id, clazz);
         objectToRemove.ifPresent(it -> {
-            if (ownerId != null && !ownerId.equals(it.ownerId)) {
+            if (ownerId != null && !ownerId.equals(it._ownerId)) {
                 throw new ConversationException("invalid_conversation_user_combination",
                         Map.of("conversationId", id, "userId", ownerId));
             }
@@ -66,15 +66,15 @@ public class ConversationRepository {
 
     private <T extends AbstractConversationHolder> void setVersionIfNew(T t) {
         if (t.id == null && t.getClass().isAnnotationPresent(Version.class)) {
-            t.version = t.getClass().getAnnotation(Version.class).value();
-            log.debug("creating conversation of type {} with version: {}", t.getClass().getSimpleName(), t.version);
+            t._version = t.getClass().getAnnotation(Version.class).value();
+            log.debug("creating conversation of type {} with version: {}", t.getClass().getSimpleName(), t._version);
         }
     }
 
     private <T extends AbstractConversationHolder> void validateVersionIfRequired(T t) {
         if (t.getClass().isAnnotationPresent(Version.class)) {
             String currentVersion = t.getClass().getAnnotation(Version.class).value();
-            if (!currentVersion.equalsIgnoreCase(t.version)) {
+            if (!currentVersion.equalsIgnoreCase(t._version)) {
                 throw new ConversationException("invalid_conversation_version", "conversationId", t.id);
             }
         }

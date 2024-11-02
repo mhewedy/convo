@@ -7,7 +7,7 @@ import java.time.Instant;
  */
 public abstract class AbstractConversationHolder {
     public String id;
-    public Object ownerId;
-    public String version;
-    public Instant expiresAt;
+    public Object _ownerId;
+    public String _version;
+    public Instant _expiresAt;
 }

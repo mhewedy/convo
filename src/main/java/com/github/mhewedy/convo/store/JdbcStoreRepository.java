@@ -67,12 +67,12 @@ public class JdbcStoreRepository implements StoreRepository {
             if (log.isTraceEnabled()) {
                 log.trace("conversation for class: {} already not exists, creating...", t.getClass().getName());
             }
-            t.expiresAt = Instant.now().plus(Util.getTimeToLive(t));
+            t._expiresAt = Instant.now().plus(Util.getTimeToLive(t));
             var map = new HashMap<String, Object>();
             map.put("id", t.id);
-            map.put("owner_id", t.ownerId);
-            map.put("version", t.version);
-            map.put("expires_at", Timestamp.from(t.expiresAt));
+            map.put("owner_id", t._ownerId);
+            map.put("version", t._version);
+            map.put("expires_at", Timestamp.from(t._expiresAt));
             map.put("conversation_class", t.getClass().getSimpleName());
             map.put("conversation_value", toJson(t));
             int update = jdbcTemplate.update("""
@@ -111,7 +111,7 @@ public class JdbcStoreRepository implements StoreRepository {
                         }
                     }
             );
-            if (Instant.now().isAfter(value.expiresAt)) {
+            if (Instant.now().isAfter(value._expiresAt)) {
                 if (log.isDebugEnabled()) {
                     log.debug("conversation with id: {}, conversation class: {} has expired!", id, clazz.getSimpleName());
                 }
