@@ -21,7 +21,7 @@ public class RedisStoreRepository implements StoreRepository {
 
     @Override
     public <T extends AbstractConversationHolder> Optional<T> findById(String id, Class<T> clazz) {
-        AbstractConversationHolder holder = (AbstractConversationHolder) redisTemplate.opsForValue().get(id);
+        Object holder = redisTemplate.opsForValue().get(id);
         return Optional.ofNullable(clazz.cast(holder));
     }
 
