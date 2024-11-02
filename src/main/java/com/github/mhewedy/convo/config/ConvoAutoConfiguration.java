@@ -1,11 +1,17 @@
-package com.github.mhewedy.convo;
+package com.github.mhewedy.convo.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.mhewedy.convo.AbstractConversationHolder;
+import com.github.mhewedy.convo.ConversationFilter;
+import com.github.mhewedy.convo.ConversationRepository;
+import com.github.mhewedy.convo.IdGenerator;
 import com.github.mhewedy.convo.store.JdbcStoreRepository;
 import com.github.mhewedy.convo.store.RedisStoreRepository;
 import com.github.mhewedy.convo.store.StoreRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +20,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 @Configuration
+@EnableConfigurationProperties(ConvoProperties.class)
 public class ConvoAutoConfiguration {
 
     @Bean
@@ -42,6 +49,7 @@ public class ConvoAutoConfiguration {
         @Bean
         @Primary
         @ConditionalOnMissingBean
+        @ConditionalOnProperty(value = "convo.store", havingValue = "redis", matchIfMissing = true)
         public RedisStoreRepository redisStoreRepository(RedisTemplate<String, AbstractConversationHolder> redisTemplate) {
             return new RedisStoreRepository(redisTemplate);
         }
@@ -53,6 +61,7 @@ public class ConvoAutoConfiguration {
 
         @Bean
         @ConditionalOnMissingBean
+        @ConditionalOnProperty(value = "convo.store", havingValue = "jdbc", matchIfMissing = true)
         public JdbcStoreRepository jdbcStoreRepository(NamedParameterJdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
             return new JdbcStoreRepository(objectMapper, jdbcTemplate);
         }
