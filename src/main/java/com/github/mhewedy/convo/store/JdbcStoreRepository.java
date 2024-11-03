@@ -10,6 +10,7 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.annotation.PostConstruct;
 import java.sql.Timestamp;
@@ -46,13 +47,16 @@ public class JdbcStoreRepository implements StoreRepository {
     private final ConvoProperties properties;
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private final ScheduledExecutorService cleanupExecutorService;
+    private final TransactionTemplate transactionTemplate;
 
     public JdbcStoreRepository(ObjectMapper objectMapper, NamedParameterJdbcTemplate jdbcTemplate,
-                               ConvoProperties properties, ScheduledExecutorService cleanupExecutorService) {
+                               ConvoProperties properties, ScheduledExecutorService cleanupExecutorService,
+                               TransactionTemplate transactionTemplate) {
         this.objectMapper = objectMapper;
         this.jdbcTemplate = jdbcTemplate;
         this.properties = properties;
         this.cleanupExecutorService = cleanupExecutorService;
+        this.transactionTemplate = transactionTemplate;
     }
 
     @Override
@@ -125,21 +129,21 @@ public class JdbcStoreRepository implements StoreRepository {
 
     @PostConstruct
     void startCleanupTask() {
-        var cleanup = properties.getJdbc().getCleanup();
-        if (!cleanup.getEnabled()) {
-            return;
-        }
-        cleanupExecutorService.scheduleAtFixedRate(() -> {
-            try {
-                int n = jdbcTemplate.update("DELETE from conversation_holder WHERE expires_at < :now",
-                        new MapSqlParameterSource(Map.of("now", Timestamp.from(Instant.now()))));
-                if (log.isTraceEnabled()) {
-                    log.trace("deleting expired conversations, {} rows deleted", n);
+        if (properties.getJdbc().getCleanup().getEnabled()) {
+            cleanupExecutorService.scheduleAtFixedRate(() -> transactionTemplate.execute(status -> {
+                try {
+                    int n = jdbcTemplate.update("DELETE from conversation_holder WHERE expires_at < :now",
+                            new MapSqlParameterSource(Map.of("now", Timestamp.from(Instant.now())))
+                    );
+                    if (log.isTraceEnabled()) {
+                        log.trace("deleting expired conversations, {} rows deleted", n);
+                    }
+                } catch (Exception ex) {
+                    log.warn(ex.getMessage());
                 }
-            } catch (Exception ex) {
-                log.warn(ex.getMessage());
-            }
-        }, 0, cleanup.getInterval().toMinutes(), TimeUnit.MINUTES);
+                return null;
+            }), 0, properties.getJdbc().getCleanup().getInterval().toMillis(), TimeUnit.MILLISECONDS);
+        }
     }
 
     private <T extends AbstractConversationHolder> boolean exists(T t) {
