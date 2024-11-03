@@ -1,7 +1,6 @@
 package com.github.mhewedy.convo;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -14,7 +13,6 @@ import java.io.IOException;
 
 import static com.github.mhewedy.convo.Constants.X_CONVERSATION_ID;
 
-@Slf4j
 @RequiredArgsConstructor
 public class ConversationFilter extends OncePerRequestFilter {
 
@@ -32,7 +30,7 @@ public class ConversationFilter extends OncePerRequestFilter {
     public static String getCurrentConversationId() {
         var attrs = RequestContextHolder.getRequestAttributes();
         if (attrs == null) {
-            log.warn("cannot get conversation id, reason: RequestContextHolder.getRequestAttributes() is null");
+            System.err.println("cannot get conversation id, reason: RequestContextHolder.getRequestAttributes() is null");
             return null;
         }
         return (String) attrs.getAttribute(X_CONVERSATION_ID, RequestAttributes.SCOPE_REQUEST);
@@ -41,7 +39,7 @@ public class ConversationFilter extends OncePerRequestFilter {
     static void setCurrentConversationId(String conversationId) {
         var attrs = RequestContextHolder.getRequestAttributes();
         if (attrs == null) {
-            log.warn("cannot set conversation id, reason: RequestContextHolder.getRequestAttributes() is null");
+            System.err.println("cannot set conversation id, reason: RequestContextHolder.getRequestAttributes() is null");
             return;
         }
         attrs.setAttribute(X_CONVERSATION_ID, conversationId, RequestAttributes.SCOPE_REQUEST);
