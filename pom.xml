@@ -13,7 +13,7 @@
 
     <groupId>com.github.mhewedy</groupId>
     <artifactId>convo</artifactId>
-    <version>0.0.7</version>
+    <version>0.0.8</version>
     <name>convo</name>
     <description>Convo conversation manager</description>
 
@@ -79,9 +79,9 @@
         </dependency>
     </dependencies>
 
-    <build>
+   <!-- <build>
         <plugins>
-            <!-- for codecov-->
+            &lt;!&ndash; for codecov&ndash;&gt;
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -103,7 +103,7 @@
                 </executions>
             </plugin>
 
-            <!-- for deploy to maven central-->
+            &lt;!&ndash; for deploy to maven central&ndash;&gt;
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
@@ -155,16 +155,16 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <!-- Prevent gpg from using pinentry programs -->
+                    &lt;!&ndash; Prevent gpg from using pinentry programs &ndash;&gt;
                     <gpgArguments>
-                        <arg>--pinentry-mode</arg>
+                        <arg>&#45;&#45;pinentry-mode</arg>
                         <arg>loopback</arg>
                     </gpgArguments>
                 </configuration>
             </plugin>
 
         </plugins>
-    </build>
+    </build>-->
 
     <distributionManagement>
         <snapshotRepository>

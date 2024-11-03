@@ -30,7 +30,6 @@ public class ConversationFilter extends OncePerRequestFilter {
     public static String getCurrentConversationId() {
         var attrs = RequestContextHolder.getRequestAttributes();
         if (attrs == null) {
-            System.err.println("cannot get conversation id, reason: RequestContextHolder.getRequestAttributes() is null");
             return null;
         }
         return (String) attrs.getAttribute(X_CONVERSATION_ID, RequestAttributes.SCOPE_REQUEST);
@@ -39,7 +38,6 @@ public class ConversationFilter extends OncePerRequestFilter {
     static void setCurrentConversationId(String conversationId) {
         var attrs = RequestContextHolder.getRequestAttributes();
         if (attrs == null) {
-            System.err.println("cannot set conversation id, reason: RequestContextHolder.getRequestAttributes() is null");
             return;
         }
         attrs.setAttribute(X_CONVERSATION_ID, conversationId, RequestAttributes.SCOPE_REQUEST);
