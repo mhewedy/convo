@@ -62,6 +62,7 @@ public class JdbcStoreRepository implements StoreRepository {
     @Override
     @Transactional
     public <T extends AbstractConversationHolder> void update(T t) {
+        t._expiresAt = Instant.now().plus(Util.getTimeToLive(t));
         if (!exists(t)) {
             createNewConversation(t);
         } else {
@@ -162,7 +163,7 @@ public class JdbcStoreRepository implements StoreRepository {
         if (log.isTraceEnabled()) {
             log.trace("conversation for class: {} already not exists, creating...", t.getClass().getName());
         }
-        t._expiresAt = Instant.now().plus(Util.getTimeToLive(t));
+
         var map = new HashMap<String, Object>();
         map.put("id", t.id);
         map.put("owner_id", t._ownerId);
@@ -185,15 +186,17 @@ public class JdbcStoreRepository implements StoreRepository {
         if (log.isTraceEnabled()) {
             log.trace("conversation for class: {} already exists, updating...", t.getClass().getName());
         }
+
         int update = jdbcTemplate.update("""
                         UPDATE conversation_holder
-                        SET conversation_value = :conversation_value
+                        SET conversation_value = :conversation_value, expires_at = :expires_at
                         WHERE id = :id and conversation_class = :conversation_class
                         """,
                 new MapSqlParameterSource(Map.of(
                         "id", t.id,
                         "conversation_class", t.getClass().getSimpleName(),
-                        "conversation_value", toJson(t)
+                        "conversation_value", toJson(t),
+                        "expires_at", Timestamp.from(t._expiresAt)
                 ))
         );
         if (update != 1) {
