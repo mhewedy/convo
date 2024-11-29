@@ -4,7 +4,17 @@ The Conversation Repository is used to hold data between multiple api calls.
 It protects against malicious user behaviour by skipping API calls or try to jump between them.
 
 ## Install
+For spring-boot 3.x:
+```xml
 
+<dependency>
+    <groupId>com.github.mhewedy</groupId>
+    <artifactId>convo</artifactId>
+    <version>0.1.0</version>
+</dependency>
+```
+
+For spring-boot 2.x:
 ```xml
 
 <dependency>
