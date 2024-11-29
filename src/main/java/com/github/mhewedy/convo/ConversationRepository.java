@@ -82,12 +82,12 @@ public class ConversationRepository {
 
     private <T extends AbstractConversationHolder> void setIdIfNull(T t) {
         if (t.id == null) {
-            t.id = getConversationId(idGenerator);
+            t.id = getConversationId();
             log.debug("setting conversation id with value: {}, type: {}", t.id, t.getClass().getSimpleName());
         }
     }
 
-    private String getConversationId(IdGenerator idGenerator) {
+    private String getConversationId() {
         var currentId = ConversationFilter.getCurrentConversationId();
         if (currentId != null) {
             return currentId;
