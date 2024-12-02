@@ -1,7 +1,7 @@
 # Convo
 
-The Conversation Repository is used to hold data between multiple api calls.
-It protects against malicious user behaviour by skipping API calls or try to jump between them.
+The Conversation Repository abstracts how to hold data between multiple API calls.
+It protects against malicious user behavior by skipping API calls or trying to jump between them.
 
 ## Install
 For spring-boot 3.x:
