@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
  * create table conversation_holder
  * (
  *     id                 varchar(50) primary key,
- *     owner_id           varchar(10),
+ *     owner_id           varchar(50),
  *     version            varchar(10),
  *     expires_at         datetime,
  *     conversation_class varchar(500),
@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit;
  * <pre>
  * create index idx_conversation_holder_expires_at on conversation_holder (expires_at)
  * </pre>
- * Note: the column datatypes and sizes are DBMS-dependent, you can change based on your suitation.
+ * Note: the column datatypes and sizes are DBMS-dependent, you can change based on your situation.
  */
 @Slf4j
 public class JdbcStoreRepository implements StoreRepository {
