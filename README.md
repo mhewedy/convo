@@ -53,7 +53,7 @@ public static class RegistrationConversation extends AbstractConversationHolder 
     @Step(1)
     public String mobileNumber;
 
-    @Step(1)
+    @Step(2)
     public VerifiedUserData verifiedUserData;
 
     public static class VerifiedUserData {
