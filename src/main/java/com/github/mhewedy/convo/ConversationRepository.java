@@ -31,7 +31,7 @@ public class ConversationRepository {
 
         setVersionIfNew(t);
         setIdIfNull(t);
-        t._ownerId = ownerId;
+        t._ownerId = normalize(ownerId);
         nullifier.nullifyNextStepsFields(t);
         storeRepository.update(t);
     }
@@ -42,7 +42,7 @@ public class ConversationRepository {
      */
     public <T extends AbstractConversationHolder> T findById(@Nullable Object ownerId, String id, Class<T> clazz) {
         T object = storeRepository.findById(id, clazz)
-                .filter(it -> ownerId == null || ownerId.equals(it._ownerId))
+                .filter(it -> ownerId == null || normalize(ownerId).equals(it._ownerId))
                 .orElseThrow(() -> new ConversationException("invalid_conversation_user_combination",
                         Map.of("conversationId", id, "userId", ownerId + ""))
                 );
@@ -56,7 +56,7 @@ public class ConversationRepository {
     public <T extends AbstractConversationHolder> void remove(@Nullable Object ownerId, String id, Class<T> clazz) {
         var objectToRemove = storeRepository.findById(id, clazz);
         objectToRemove.ifPresent(it -> {
-            if (ownerId != null && !ownerId.equals(it._ownerId)) {
+            if (ownerId != null && !normalize(ownerId).equals(it._ownerId)) {
                 throw new ConversationException("invalid_conversation_user_combination",
                         Map.of("conversationId", id, "userId", ownerId));
             }
@@ -96,5 +96,9 @@ public class ConversationRepository {
             ConversationFilter.setCurrentConversationId(newId);
             return newId;
         }
+    }
+
+    private String normalize(@Nullable Object id) {
+        return id == null ? null : id.toString();
     }
 }
