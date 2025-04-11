@@ -13,7 +13,7 @@ public class ConvoProperties {
     private Jdbc jdbc = new Jdbc();
 
     public enum Store {
-        JDBC, REDIS
+        JDBC, REDIS, CUSTOM
     }
 
     @Data

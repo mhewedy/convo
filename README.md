@@ -11,7 +11,7 @@ For Spring Boot 3.x:
 <dependency>
     <groupId>com.github.mhewedy</groupId>
     <artifactId>convo</artifactId>
-    <version>0.1.3</version>
+    <version>0.1.4</version>
 </dependency>
 ```
 
@@ -43,9 +43,9 @@ Convo selects the storage backend automatically:
 - Falls back to **JDBC** if `JdbcTemplate` is present.
 - If neither is available, a custom `StoreRepository` must be provided.
 
-You can force a backend explicitly via:
+You can force a storage backend explicitly via:
 ```
-convo.store=redis|jdbc
+convo.store=redis|jdbc|custom
 ```
 
 ## Usage
