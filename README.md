@@ -75,32 +75,30 @@ public class RegistrationController {
     private ConversationRepository conversationRepository;
 
     // first api call
-    @RequestMapping //(....)
+    @RequestMapping("/api/register/verify-mobile-number")
     public void verifyMobileNumber(String mobileNumber) {
         var conv = new RegistrationConversation();
         // verify mobileNumber somehow
         // .....
         conv.mobileNumber = mobileNumber;
         conversationRepository.update(null, conv);
-        return ResponseEntity.ok()
-                .header(Constants.X_CONVERSATION_ID, conv.id)
-                .build();
+        
+        return ResponseEntity.ok().header(Constants.X_CONVERSATION_ID, conv.id).build();
     }
 
     // second api call
-    @RequestMapping //(....)
+    @RequestMapping("/api/register/verify-user-data")
     public String verifyUserData(@RequestHeader(Constants.X_CONVERSATION_ID) String conversationId) {
         var conv = conversationRepository.findById(null, conversationId, RegistrationConversation.class);
         conv.verifiedUserData = new RegistrationConversation.VerifiedUserData();
         conv.verifiedUserData.name = getFromSomeVerifiedPlace();
         conversationRepository.update(null, conv);
-        return ResponseEntity.ok()
-                .header(Constants.X_CONVERSATION_ID, conversationId)
-                .build();
+        
+        return ResponseEntity.ok().header(Constants.X_CONVERSATION_ID, conversationId).build();
     }
 
     // third api call
-    @RequestMapping //(....)
+    @RequestMapping("/api/register/register-user")
     public void register(@RequestHeader(Constants.X_CONVERSATION_ID) String conversationId) {
         var conv = conversationRepository.findById(null, conversationId, RegistrationConversation.class);
         // save data from conv to db to create the new user 
