@@ -34,7 +34,7 @@ class ConversationRepositoryJdbcIntegrationTest {
     private ConversationRepository conversationRepository;
 
     @Version("1")
-    private static class VersionedTestConversation extends AbstractConversationHolder {
+    private static class TestConversation extends AbstractConversationHolder {
         @Step(1)
         public String data;
     }
@@ -47,7 +47,7 @@ class ConversationRepositoryJdbcIntegrationTest {
     @Test
     void shouldSaveAndRetrieveConversation() {
         // given
-        VersionedTestConversation conversation = new VersionedTestConversation();
+        TestConversation conversation = new TestConversation();
         conversation.data = "test data";
         String ownerId = "testUser";
 
@@ -55,7 +55,7 @@ class ConversationRepositoryJdbcIntegrationTest {
         conversationRepository.update(ownerId, conversation);
 
         // then
-        VersionedTestConversation retrieved = conversationRepository.findById(ownerId, conversation.id, VersionedTestConversation.class);
+        TestConversation retrieved = conversationRepository.findById(ownerId, conversation.id, TestConversation.class);
         assertNotNull(retrieved);
         assertEquals("test data", retrieved.data);
         assertNotNull(retrieved.id);
@@ -65,7 +65,7 @@ class ConversationRepositoryJdbcIntegrationTest {
     @Test
     void shouldSaveAndRetrieveConversation_With_LongOwnerId() {
         // given
-        VersionedTestConversation conversation = new VersionedTestConversation();
+        TestConversation conversation = new TestConversation();
         conversation.data = "test data";
         Long ownerId = 1234L;
 
@@ -73,7 +73,7 @@ class ConversationRepositoryJdbcIntegrationTest {
         conversationRepository.update(ownerId, conversation);
 
         // then
-        VersionedTestConversation retrieved = conversationRepository.findById(ownerId, conversation.id, VersionedTestConversation.class);
+        TestConversation retrieved = conversationRepository.findById(ownerId, conversation.id, TestConversation.class);
         assertNotNull(retrieved);
         assertEquals("test data", retrieved.data);
         assertNotNull(retrieved.id);
@@ -83,16 +83,16 @@ class ConversationRepositoryJdbcIntegrationTest {
     @Test
     void shouldRemoveConversation() {
         // given
-        VersionedTestConversation conversation = new VersionedTestConversation();
+        TestConversation conversation = new TestConversation();
         conversation.data = "test data";
         String ownerId = "testUser";
         conversationRepository.update(ownerId, conversation);
 
         // when
-        conversationRepository.remove(ownerId, conversation.id, VersionedTestConversation.class);
+        conversationRepository.remove(ownerId, conversation.id, TestConversation.class);
 
         // then
         assertThrows(ConversationException.class, () ->
-                conversationRepository.findById(ownerId, conversation.id, VersionedTestConversation.class));
+                conversationRepository.findById(ownerId, conversation.id, TestConversation.class));
     }
 }
