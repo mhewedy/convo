@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import jakarta.annotation.PostConstruct;
+
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.HashMap;
@@ -22,23 +23,24 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * This implementation requires a table with the following structure
- * <pre>
- * create table conversation_holder
- * (
- *     id                 varchar(50) primary key,
- *     owner_id           varchar(50),
- *     version            varchar(10),
- *     expires_at         datetime,
- *     conversation_class varchar(500),
- *     conversation_value varchar(8000)
- * );
- * </pre>
- * It is also recommended to create an index on expires_at column, for example:
- * <pre>
- * create index idx_conversation_holder_expires_at on conversation_holder (expires_at)
- * </pre>
- * Note: the column datatypes and sizes are DBMS-dependent, you can change based on your situation.
+ * This implementation requires a table to hold conversation data.
+ * The table should have the following structure:
+ *
+ * <ul>
+ *     <li>{@code id}: A unique identifier for the conversation (e.g., VARCHAR(50))</li>
+ *     <li>{@code expires_at}: A timestamp indicating when the conversation expires (e.g., DATETIME, TIMESTAMP)</li>
+ *     <li>{@code conversation_class}: A string indicating the class or type of the conversation (e.g., VARCHAR(500))</li>
+ *     <li>{@code conversation_value}: The data of the conversation, stored as large text or serialized data (e.g., VARCHAR(8000), TEXT)</li>
+ * </ul>
+ *
+ * <p>
+ * SQL definitions for creating the {@code conversation_holder} table are provided in separate files located in the
+ * {@code src/resources/sql} directory. These files contain the SQL required to create the table and recommended indexes
+ * for various databases.
+ * </p>
+ * <p>
+ * Ensure to use the appropriate SQL file based on your environment for optimal compatibility and performance.
+ * </p>
  */
 @Slf4j
 public class JdbcStoreRepository implements StoreRepository {
@@ -78,7 +80,7 @@ public class JdbcStoreRepository implements StoreRepository {
         }
         try {
             T value = jdbcTemplate.queryForObject("""
-                            SELECT id, owner_id, version, expires_at, conversation_class, conversation_value
+                            SELECT id, expires_at, conversation_class, conversation_value
                             FROM conversation_holder
                             WHERE id = :id AND conversation_class = :conversation_class
                             """,
@@ -166,19 +168,17 @@ public class JdbcStoreRepository implements StoreRepository {
 
         var map = new HashMap<String, Object>();
         map.put("id", t.id);
-        map.put("owner_id", t._ownerId);
-        map.put("version", t._version);
         map.put("expires_at", Timestamp.from(t._expiresAt));
         map.put("conversation_class", t.getClass().getSimpleName());
         map.put("conversation_value", toJson(t));
         int update = jdbcTemplate.update("""
-                        INSERT INTO conversation_holder (id, owner_id, version, expires_at, conversation_class, conversation_value)
-                        VALUES (:id, :owner_id, :version, :expires_at, :conversation_class, :conversation_value)
+                        INSERT INTO conversation_holder (id, expires_at, conversation_class, conversation_value)
+                        VALUES (:id, :expires_at, :conversation_class, :conversation_value)
                         """,
                 new MapSqlParameterSource(map)
         );
         if (update != 1) {
-            throw new ConversationException("failed to insert object");
+            throw new ConversationException("failed to insert object: " + t);
         }
     }
 
@@ -200,7 +200,7 @@ public class JdbcStoreRepository implements StoreRepository {
                 ))
         );
         if (update != 1) {
-            throw new ConversationException("failed to update object");
+            throw new ConversationException("failed to update object: " + t);
         }
     }
 

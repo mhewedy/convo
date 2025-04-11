@@ -43,8 +43,8 @@ public class ConversationRepository {
     public <T extends AbstractConversationHolder> T findById(@Nullable Object ownerId, String id, Class<T> clazz) {
         T object = storeRepository.findById(id, clazz)
                 .filter(it -> ownerId == null || normalize(ownerId).equals(it._ownerId))
-                .orElseThrow(() -> new ConversationException("invalid_conversation_user_combination",
-                        Map.of("conversationId", id, "userId", ownerId + ""))
+                .orElseThrow(() -> new ConversationException("conversation with specified id does not exist for the given owner",
+                        Map.of("conversationId", id, "ownerId", ownerId + ""))
                 );
         validateVersionIfRequired(object);
         return object;
@@ -57,8 +57,8 @@ public class ConversationRepository {
         var objectToRemove = storeRepository.findById(id, clazz);
         objectToRemove.ifPresent(it -> {
             if (ownerId != null && !normalize(ownerId).equals(it._ownerId)) {
-                throw new ConversationException("invalid_conversation_user_combination",
-                        Map.of("conversationId", id, "userId", ownerId));
+                throw new ConversationException("conversation with specified id does not exist for the given owner",
+                        Map.of("conversationId", id, "ownerId", ownerId));
             }
             storeRepository.remove(it);
         });

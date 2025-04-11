@@ -10,7 +10,7 @@ For spring-boot 3.x:
 <dependency>
     <groupId>com.github.mhewedy</groupId>
     <artifactId>convo</artifactId>
-    <version>0.1.2</version>
+    <version>0.1.3</version>
 </dependency>
 ```
 
@@ -44,7 +44,10 @@ You always can override this default resolution using `convo.store=redis|jdbc`
 
 ## Usage
 
-First, create an object that will hold your conversation data, e.g.:
+First, create an object that will hold your conversation data
+
+>You can find SQL schema definitions for some databases in the [resources/sql](src/main/resources/sql) directory. 
+> (any JDBC-compliant DB is support)
 
 ```java
 //@TimeToLive(duration = "PT30M") //optional
