@@ -55,8 +55,8 @@ Create a class that defines the conversation state. You can annotate it for TTL 
 > SQL schema examples are available in [resources/sql](src/main/resources/sql). Supports any JDBC-compliant database.
 
 ```java
-//@TimeToLive(duration = "PT30M") // Optional: expire conversation after inactivity
-//@Version("1") // Optional: for backward compatibility with schema changes
+//@TimeToLive(duration = "PT30M") // Optional: expire conversation after inactivity (default 30 minutes)
+//@Version("1") // Optional: for backward compatibility with schema changes (default no version)
 public static class RegistrationConversation extends AbstractConversationHolder {
 
     @Step(1)
