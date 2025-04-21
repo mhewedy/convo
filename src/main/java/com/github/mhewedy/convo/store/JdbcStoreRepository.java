@@ -6,6 +6,7 @@ import com.github.mhewedy.convo.AbstractConversationHolder;
 import com.github.mhewedy.convo.ConversationException;
 import com.github.mhewedy.convo.config.ConvoProperties;
 import jakarta.annotation.PostConstruct;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Map;
@@ -84,22 +86,21 @@ public class JdbcStoreRepository implements StoreRepository {
     public <T extends AbstractConversationHolder> Optional<T> findById(String id, Class<T> clazz) {
         log.trace("find conversation with id: {}, class: {}", id, clazz.getSimpleName());
         try {
-            T value = jdbcTemplate.queryForObject(SQL_FIND_BY_ID, createParams(id, clazz), (rs, rowNum) -> {
-                try {
-                    return objectMapper.readValue(rs.getString("conversation_value"), clazz);
-                } catch (JsonProcessingException e) {
-                    throw new RuntimeException(e);
+            T value = jdbcTemplate.queryForObject(SQL_FIND_BY_ID, createParams(id, clazz),
+                    (rs, rowNum) -> fromJson(rs.getString("conversation_value"), clazz));
+
+            if (value == null || Instant.now().isAfter(value._expiresAt)) {
+                if (value == null) {
+                    log.debug("conversation not found: {}", id);
+                } else {
+                    remove(value);
+                    log.debug("conversation expired: {}", id);
                 }
-            });
-            if (Instant.now().isAfter(value._expiresAt)) {
-                log.debug("conversation with id: {}, conversation class: {} has expired!", id, clazz.getSimpleName());
-                remove(value);
                 return Optional.empty();
-            } else {
-                return Optional.of(value);
             }
+            return Optional.of(value);
         } catch (EmptyResultDataAccessException ex) {
-            log.debug("cannot find conversation object with id: {}, class: {}, reason: {}", id, clazz, ex.getMessage());
+            log.debug("conversation not found: {}, reason: {}", id, ex.getMessage());
             return Optional.empty();
         }
     }
@@ -158,6 +159,11 @@ public class JdbcStoreRepository implements StoreRepository {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @SneakyThrows({JsonProcessingException.class})
+    private <T extends AbstractConversationHolder> T fromJson(String str, Class<T> clazz) {
+        return objectMapper.readValue(str, clazz);
     }
 
     private <T extends AbstractConversationHolder> MapSqlParameterSource createParams(String id, Class<T> clazz) {
