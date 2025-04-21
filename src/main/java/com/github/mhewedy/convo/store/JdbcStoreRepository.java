@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.mhewedy.convo.AbstractConversationHolder;
 import com.github.mhewedy.convo.ConversationException;
 import com.github.mhewedy.convo.config.ConvoProperties;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -12,11 +13,9 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import jakarta.annotation.PostConstruct;
-
+import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
@@ -45,6 +44,12 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class JdbcStoreRepository implements StoreRepository {
 
+    private static final String SQL_FIND_BY_ID = "SELECT id, expires_at, conversation_class, conversation_value FROM conversation_holder WHERE id = :id AND conversation_class = :conversation_class";
+    private static final String SQL_INSERT = "INSERT INTO conversation_holder (id, expires_at, conversation_class, conversation_value) VALUES (:id, :expires_at, :conversation_class, :conversation_value)";
+    private static final String SQL_UPDATE = "UPDATE conversation_holder SET conversation_value = :conversation_value, expires_at = :expires_at WHERE id = :id and conversation_class = :conversation_class";
+    private static final String SQL_DELETE = "DELETE FROM conversation_holder WHERE id = :id and conversation_class = :conversation_class";
+    private static final String SQL_CLEANUP = "DELETE from conversation_holder  WHERE expires_at < :now";
+
     private final ObjectMapper objectMapper;
     private final ConvoProperties properties;
     private final NamedParameterJdbcTemplate jdbcTemplate;
@@ -64,51 +69,37 @@ public class JdbcStoreRepository implements StoreRepository {
     @Override
     @Transactional
     public <T extends AbstractConversationHolder> void update(T t) {
+        var exists = jdbcTemplate.query(SQL_FIND_BY_ID, createParams(t.id, t.getClass()), ResultSet::next);
         t._expiresAt = Instant.now().plus(Util.getTimeToLive(t));
-        if (!exists(t)) {
-            createNewConversation(t);
-        } else {
+
+        if (Boolean.TRUE.equals(exists)) {
             updateExistingConversation(t);
+        } else {
+            createNewConversation(t);
         }
     }
 
     @Override
     @Transactional
     public <T extends AbstractConversationHolder> Optional<T> findById(String id, Class<T> clazz) {
-        if (log.isTraceEnabled()) {
-            log.trace("find conversation with id: {}, class: {}", id, clazz.getSimpleName());
-        }
+        log.trace("find conversation with id: {}, class: {}", id, clazz.getSimpleName());
         try {
-            T value = jdbcTemplate.queryForObject("""
-                            SELECT id, expires_at, conversation_class, conversation_value
-                            FROM conversation_holder
-                            WHERE id = :id AND conversation_class = :conversation_class
-                            """,
-                    new MapSqlParameterSource(Map.of(
-                            "id", id,
-                            "conversation_class", clazz.getSimpleName()
-                    )),
-                    (rs, rowNum) -> {
-                        try {
-                            return objectMapper.readValue(rs.getString("conversation_value"), clazz);
-                        } catch (JsonProcessingException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-            );
-            if (Instant.now().isAfter(value._expiresAt)) {
-                if (log.isDebugEnabled()) {
-                    log.debug("conversation with id: {}, conversation class: {} has expired!", id, clazz.getSimpleName());
+            T value = jdbcTemplate.queryForObject(SQL_FIND_BY_ID, createParams(id, clazz), (rs, rowNum) -> {
+                try {
+                    return objectMapper.readValue(rs.getString("conversation_value"), clazz);
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
                 }
+            });
+            if (Instant.now().isAfter(value._expiresAt)) {
+                log.debug("conversation with id: {}, conversation class: {} has expired!", id, clazz.getSimpleName());
                 remove(value);
                 return Optional.empty();
             } else {
                 return Optional.of(value);
             }
         } catch (EmptyResultDataAccessException ex) {
-            if (log.isDebugEnabled()) {
-                log.debug("cannot find conversation object with id: {}, class: {}, reason: {}", id, clazz, ex.getMessage());
-            }
+            log.debug("cannot find conversation object with id: {}, class: {}, reason: {}", id, clazz, ex.getMessage());
             return Optional.empty();
         }
     }
@@ -116,18 +107,8 @@ public class JdbcStoreRepository implements StoreRepository {
     @Override
     @Transactional
     public <T extends AbstractConversationHolder> void remove(T t) {
-        if (log.isTraceEnabled()) {
-            log.trace("deleting conversation with id: {}, class: {}", t.id, t.getClass().getSimpleName());
-        }
-        jdbcTemplate.update("""
-                        DELETE FROM conversation_holder
-                        WHERE id = :id and conversation_class = :conversation_class
-                        """,
-                new MapSqlParameterSource(Map.of(
-                        "id", t.id,
-                        "conversation_class", t.getClass().getSimpleName()
-                ))
-        );
+        log.trace("deleting conversation with id: {}, class: {}", t.id, t.getClass().getSimpleName());
+        jdbcTemplate.update(SQL_DELETE, createParams(t.id, t.getClass()));
     }
 
     @PostConstruct
@@ -135,12 +116,8 @@ public class JdbcStoreRepository implements StoreRepository {
         if (properties.getJdbc().getCleanup().getEnabled()) {
             cleanupExecutorService.scheduleAtFixedRate(() -> transactionTemplate.execute(status -> {
                 try {
-                    int n = jdbcTemplate.update("DELETE from conversation_holder WHERE expires_at < :now",
-                            new MapSqlParameterSource(Map.of("now", Timestamp.from(Instant.now())))
-                    );
-                    if (log.isTraceEnabled()) {
-                        log.trace("deleting expired conversations, {} rows deleted", n);
-                    }
+                    int n = jdbcTemplate.update(SQL_CLEANUP, new MapSqlParameterSource(Map.of("now", Timestamp.from(Instant.now()))));
+                    log.trace("deleting expired conversations, {} rows deleted", n);
                 } catch (Exception ex) {
                     log.warn(ex.getMessage());
                 }
@@ -149,58 +126,29 @@ public class JdbcStoreRepository implements StoreRepository {
         }
     }
 
-    private <T extends AbstractConversationHolder> boolean exists(T t) {
-        var sql = "SELECT COUNT(*) FROM conversation_holder WHERE id = :id AND conversation_class = :conversation_class";
-        var count = jdbcTemplate.queryForObject(sql,
-                new MapSqlParameterSource(Map.of(
-                        "id", t.id,
-                        "conversation_class", t.getClass().getSimpleName()
-                )),
-                Integer.class
-        );
-        return count != null && count > 0;
-    }
-
     private <T extends AbstractConversationHolder> void createNewConversation(T t) {
-        if (log.isTraceEnabled()) {
-            log.trace("conversation for class: {} already not exists, creating...", t.getClass().getName());
-        }
+        log.trace("conversation for class: {} does not exist, creating...", t.getClass().getName());
 
-        var map = new HashMap<String, Object>();
-        map.put("id", t.id);
-        map.put("expires_at", Timestamp.from(t._expiresAt));
-        map.put("conversation_class", t.getClass().getSimpleName());
-        map.put("conversation_value", toJson(t));
-        int update = jdbcTemplate.update("""
-                        INSERT INTO conversation_holder (id, expires_at, conversation_class, conversation_value)
-                        VALUES (:id, :expires_at, :conversation_class, :conversation_value)
-                        """,
-                new MapSqlParameterSource(map)
-        );
+        var params = createParams(t.id, t.getClass());
+        params.addValue("expires_at", Timestamp.from(t._expiresAt));
+        params.addValue("conversation_value", toJson(t));
+
+        int update = jdbcTemplate.update(SQL_INSERT, params);
         if (update != 1) {
-            throw new ConversationException("failed to insert object: " + t);
+            throw new ConversationException("failed to insert object", "object", t);
         }
     }
 
     private <T extends AbstractConversationHolder> void updateExistingConversation(T t) {
-        if (log.isTraceEnabled()) {
-            log.trace("conversation for class: {} already exists, updating...", t.getClass().getName());
-        }
+        log.trace("conversation for class: {} already exists, updating...", t.getClass().getName());
 
-        int update = jdbcTemplate.update("""
-                        UPDATE conversation_holder
-                        SET conversation_value = :conversation_value, expires_at = :expires_at
-                        WHERE id = :id and conversation_class = :conversation_class
-                        """,
-                new MapSqlParameterSource(Map.of(
-                        "id", t.id,
-                        "conversation_class", t.getClass().getSimpleName(),
-                        "conversation_value", toJson(t),
-                        "expires_at", Timestamp.from(t._expiresAt)
-                ))
-        );
+        var params = createParams(t.id, t.getClass());
+        params.addValue("expires_at", Timestamp.from(t._expiresAt));
+        params.addValue("conversation_value", toJson(t));
+
+        int update = jdbcTemplate.update(SQL_UPDATE, params);
         if (update != 1) {
-            throw new ConversationException("failed to update object: " + t);
+            throw new ConversationException("failed to update object", "object", t);
         }
     }
 
@@ -210,5 +158,9 @@ public class JdbcStoreRepository implements StoreRepository {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private <T extends AbstractConversationHolder> MapSqlParameterSource createParams(String id, Class<T> clazz) {
+        return new MapSqlParameterSource(Map.of("id", id, "conversation_class", clazz.getSimpleName()));
     }
 }
