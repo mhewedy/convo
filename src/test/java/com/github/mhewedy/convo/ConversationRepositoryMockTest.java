@@ -96,7 +96,7 @@ class ConversationRepositoryMockTest {
     }
 
     @Test
-    void remove_ShouldRemoveConversation_WhenValidIdAndOwner() {
+    void remove_ShouldDeleteConversation_WhenValidIdAndOwner() {
         // Arrange
         TestConversation conversation = new TestConversation();
         conversation._ownerId = "owner1";
@@ -104,14 +104,14 @@ class ConversationRepositoryMockTest {
                 .thenReturn(Optional.of(conversation));
 
         // Act
-        conversationRepository.remove("owner1", "test-id", TestConversation.class);
+        conversationRepository.delete("owner1", "test-id", TestConversation.class);
 
         // Assert
-        verify(storeRepository).remove(conversation);
+        verify(storeRepository).delete(conversation);
     }
 
     @Test
-    void remove_ShouldNotRemoveConversation_WhenInvalidOwner() {
+    void remove_ShouldNotDeleteConversation_WhenInvalidOwner() {
         // Arrange
         TestConversation conversation = new TestConversation();
         conversation._ownerId = "owner1";
@@ -120,9 +120,9 @@ class ConversationRepositoryMockTest {
 
         // Act & Assert
         assertThrows(ConversationException.class, () ->
-                conversationRepository.remove("owner2", "test-id", TestConversation.class)
+                conversationRepository.delete("owner2", "test-id", TestConversation.class)
         );
-        verify(storeRepository, never()).remove(any());
+        verify(storeRepository, never()).delete(any());
     }
 
     @Test

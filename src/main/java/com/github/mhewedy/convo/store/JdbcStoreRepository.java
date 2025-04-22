@@ -92,7 +92,7 @@ public class JdbcStoreRepository implements StoreRepository {
                 if (value == null) {
                     log.debug("conversation not found: {}", id);
                 } else {
-                    remove(value);
+                    delete(value);
                     log.debug("conversation expired: {}", id);
                 }
                 return Optional.empty();
@@ -106,7 +106,7 @@ public class JdbcStoreRepository implements StoreRepository {
 
     @Override
     @Transactional
-    public <T extends AbstractConversationHolder> void remove(T t) {
+    public <T extends AbstractConversationHolder> void delete(T t) {
         log.trace("deleting conversation with id: {}, class: {}", t.id, t.getClass().getSimpleName());
         jdbcTemplate.update(SQL_DELETE, createParams(t.id, t.getClass()));
     }

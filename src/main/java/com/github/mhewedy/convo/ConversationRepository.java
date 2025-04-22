@@ -60,14 +60,14 @@ public class ConversationRepository {
      *
      * @param ownerId is the object that owns the conversation object, usually the current user id
      */
-    public <T extends AbstractConversationHolder> void remove(@Nullable Object ownerId, String id, Class<T> clazz) {
+    public <T extends AbstractConversationHolder> void delete(@Nullable Object ownerId, String id, Class<T> clazz) {
         var objectToRemove = storeRepository.findById(id, clazz);
         objectToRemove.ifPresent(it -> {
             if (ownerId != null && !normalize(ownerId).equals(it._ownerId)) {
                 throw new ConversationException("conversation with specified id does not exist for the given owner",
                         Map.of("conversationId", id, "ownerId", ownerId));
             }
-            storeRepository.remove(it);
+            storeRepository.delete(it);
         });
     }
 

@@ -120,7 +120,7 @@ class ConversationRepositoryJdbcIntegrationTest {
     }
 
     @Test
-    void shouldRemoveConversation() {
+    void shouldDeleteConversation() {
         // given
         TestConversation conversation = new TestConversation();
         conversation.data = "test data";
@@ -128,7 +128,7 @@ class ConversationRepositoryJdbcIntegrationTest {
         conversationRepository.save(ownerId, conversation);
 
         // when
-        conversationRepository.remove(ownerId, conversation.id, TestConversation.class);
+        conversationRepository.delete(ownerId, conversation.id, TestConversation.class);
 
         // then
         assertThrows(ConversationException.class, () ->
@@ -265,7 +265,7 @@ class ConversationRepositoryJdbcIntegrationTest {
         String nonExistentId = UUID.randomUUID().toString();
 
         // when & then - should not throw exception
-        conversationRepository.remove(ownerId, nonExistentId, TestConversation.class);
+        conversationRepository.delete(ownerId, nonExistentId, TestConversation.class);
     }
 
     @Test
@@ -374,7 +374,7 @@ class ConversationRepositoryJdbcIntegrationTest {
 
         // then
         assertThrows(ConversationException.class, () -> 
-                conversationRepository.remove(differentOwnerId, conversation.id, TestConversation.class));
+                conversationRepository.delete(differentOwnerId, conversation.id, TestConversation.class));
     }
 
 }

@@ -10,5 +10,5 @@ public interface StoreRepository {
 
     <T extends AbstractConversationHolder> Optional<T> findById(String id, Class<T> clazz);
 
-    <T extends AbstractConversationHolder> void remove(T it);
+    <T extends AbstractConversationHolder> void delete(T it);
 }
