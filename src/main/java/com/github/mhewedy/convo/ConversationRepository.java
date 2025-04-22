@@ -87,21 +87,24 @@ public class ConversationRepository {
         }
     }
 
+    /**
+     * Sets the conversation ID for the given conversation holder object if the ID is currently null.
+     * <br/>
+     * If a conversation ID is already set in the current request context (coming from the http request header
+     * {@link Constants#X_CONVERSATION_ID}), it uses that ID.
+     * Otherwise, it generates a new ID, sets it in the request context, and assigns it to the object.
+     */
     private <T extends AbstractConversationHolder> void setIdIfNull(T t) {
         if (t.id == null) {
-            t.id = getConversationId();
+            var currentId = ConversationFilter.getCurrentConversationId();
+            if (currentId != null) {
+                t.id = currentId;
+            } else {
+                var newId = idGenerator.generateNewConversationId();
+                ConversationFilter.setCurrentConversationId(newId);
+                t.id = newId;
+            }
             log.debug("setting conversation id with value: {}, type: {}", t.id, t.getClass().getSimpleName());
-        }
-    }
-
-    private String getConversationId() {
-        var currentId = ConversationFilter.getCurrentConversationId();
-        if (currentId != null) {
-            return currentId;
-        } else {
-            var newId = idGenerator.generateNewConversationId();
-            ConversationFilter.setCurrentConversationId(newId);
-            return newId;
         }
     }
 
