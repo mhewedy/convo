@@ -22,9 +22,12 @@ public class ConversationRepository {
     }
 
     /**
-     * @param ownerId is the object that owns the conversation object, usually the current user id
+     * Saves (Create or Update) the conversation object to the store.
+     * The conversation id can be obtained by calling {@link AbstractConversationHolder#id}.
+     *
+     * @param ownerId is the object that owns the conversation object, usually the current user id (can be null)
      */
-    public <T extends AbstractConversationHolder> void update(@Nullable Object ownerId, T t) {
+    public <T extends AbstractConversationHolder> void save(@Nullable Object ownerId, T t) {
         if (t == null) {
             throw new ConversationException("object_is_null");
         }
@@ -33,11 +36,13 @@ public class ConversationRepository {
         setIdIfNull(t);
         t._ownerId = normalize(ownerId);
         nullifier.nullifyNextStepsFields(t);
-        storeRepository.update(t);
+        storeRepository.save(t);
     }
 
     /**
-     * @param ownerId is the object that owns the conversation object, usually the current user id
+     * Return the conversation object from the store.
+     *
+     * @param ownerId is the object that owns the conversation object, usually the current user id (can be null)
      * @throws ConversationException in case no conversation found by the provided id
      */
     public <T extends AbstractConversationHolder> T findById(@Nullable Object ownerId, String id, Class<T> clazz) {
@@ -51,6 +56,8 @@ public class ConversationRepository {
     }
 
     /**
+     * Removes the conversation object from the store.
+     *
      * @param ownerId is the object that owns the conversation object, usually the current user id
      */
     public <T extends AbstractConversationHolder> void remove(@Nullable Object ownerId, String id, Class<T> clazz) {

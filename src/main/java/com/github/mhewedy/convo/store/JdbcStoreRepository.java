@@ -69,7 +69,7 @@ public class JdbcStoreRepository implements StoreRepository {
 
     @Override
     @Transactional
-    public <T extends AbstractConversationHolder> void update(T t) {
+    public <T extends AbstractConversationHolder> void save(T t) {
         var exists = jdbcTemplate.query(SQL_SELECT, createParams(t.id, t.getClass()), ResultSet::next);
         t._expiresAt = Instant.now().plus(Util.getTimeToLive(t));
 

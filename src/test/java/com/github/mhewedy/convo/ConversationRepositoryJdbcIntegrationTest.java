@@ -15,7 +15,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 
-import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
 
@@ -92,7 +91,7 @@ class ConversationRepositoryJdbcIntegrationTest {
         String ownerId = "testUser";
 
         // when
-        conversationRepository.update(ownerId, conversation);
+        conversationRepository.save(ownerId, conversation);
 
         // then
         TestConversation retrieved = conversationRepository.findById(ownerId, conversation.id, TestConversation.class);
@@ -110,7 +109,7 @@ class ConversationRepositoryJdbcIntegrationTest {
         Long ownerId = 1234L;
 
         // when
-        conversationRepository.update(ownerId, conversation);
+        conversationRepository.save(ownerId, conversation);
 
         // then
         TestConversation retrieved = conversationRepository.findById(ownerId, conversation.id, TestConversation.class);
@@ -126,7 +125,7 @@ class ConversationRepositoryJdbcIntegrationTest {
         TestConversation conversation = new TestConversation();
         conversation.data = "test data";
         String ownerId = "testUser";
-        conversationRepository.update(ownerId, conversation);
+        conversationRepository.save(ownerId, conversation);
 
         // when
         conversationRepository.remove(ownerId, conversation.id, TestConversation.class);
@@ -137,19 +136,19 @@ class ConversationRepositoryJdbcIntegrationTest {
     }
 
     @Test
-    void shouldUpdateExistingConversation() {
+    void shouldSaveExistingConversation() {
         // given
         TestConversation conversation = new TestConversation();
         conversation.data = "initial data";
         String ownerId = "testUser";
 
         // when - first update (create)
-        conversationRepository.update(ownerId, conversation);
+        conversationRepository.save(ownerId, conversation);
         String conversationId = conversation.id;
 
         // and - second update (modify)
         conversation.data = "updated data";
-        conversationRepository.update(ownerId, conversation);
+        conversationRepository.save(ownerId, conversation);
 
         // then
         TestConversation retrieved = conversationRepository.findById(ownerId, conversationId, TestConversation.class);
@@ -166,7 +165,7 @@ class ConversationRepositoryJdbcIntegrationTest {
         String ownerId = "testUser";
 
         // when
-        conversationRepository.update(ownerId, conversation);
+        conversationRepository.save(ownerId, conversation);
         String conversationId = conversation.id;
 
         // Wait for expiration (slightly more than the TTL)
@@ -187,8 +186,8 @@ class ConversationRepositoryJdbcIntegrationTest {
         String ownerId = "testUser";
 
         // when
-        conversationRepository.update(ownerId, conversation1);
-        conversationRepository.update(ownerId, conversation2);
+        conversationRepository.save(ownerId, conversation1);
+        conversationRepository.save(ownerId, conversation2);
 
         // Count before expiration
         int countBefore = jdbcTemplate.queryForObject(
@@ -229,7 +228,7 @@ class ConversationRepositoryJdbcIntegrationTest {
         conversation.data = "test data with null owner";
 
         // when
-        conversationRepository.update(null, conversation);
+        conversationRepository.save(null, conversation);
 
         // then
         TestConversation retrieved = conversationRepository.findById(null, conversation.id, TestConversation.class);
@@ -245,7 +244,7 @@ class ConversationRepositoryJdbcIntegrationTest {
 
         // when & then
         assertThrows(ConversationException.class, () -> 
-                conversationRepository.update(ownerId, null));
+                conversationRepository.save(ownerId, null));
     }
 
     @Test
@@ -277,18 +276,18 @@ class ConversationRepositoryJdbcIntegrationTest {
         String ownerId = "testUser";
 
         // when - update step 1
-        conversationRepository.update(ownerId, conversation);
+        conversationRepository.save(ownerId, conversation);
         String conversationId = conversation.id;
 
         // update step 2
         MultiStepConversation step2Conversation = conversationRepository.findById(ownerId, conversationId, MultiStepConversation.class);
         step2Conversation.step2Data = "step 2 data";
-        conversationRepository.update(ownerId, step2Conversation);
+        conversationRepository.save(ownerId, step2Conversation);
 
         // update step 3
         MultiStepConversation step3Conversation = conversationRepository.findById(ownerId, conversationId, MultiStepConversation.class);
         step3Conversation.step3Data = "step 3 data";
-        conversationRepository.update(ownerId, step3Conversation);
+        conversationRepository.save(ownerId, step3Conversation);
 
         // then
         MultiStepConversation retrieved = conversationRepository.findById(ownerId, conversationId, MultiStepConversation.class);
@@ -310,8 +309,8 @@ class ConversationRepositoryJdbcIntegrationTest {
         String ownerId = "testUser";
 
         // when
-        conversationRepository.update(ownerId, shortLived);
-        conversationRepository.update(ownerId, longerLived);
+        conversationRepository.save(ownerId, shortLived);
+        conversationRepository.save(ownerId, longerLived);
 
         // Wait for short-lived to expire but not longer-lived
         Thread.sleep(1500);
@@ -334,7 +333,7 @@ class ConversationRepositoryJdbcIntegrationTest {
         TestConversation conversation = new TestConversation();
         conversation.data = "test data";
         String ownerId = "testUser";
-        conversationRepository.update(ownerId, conversation);
+        conversationRepository.save(ownerId, conversation);
 
         // Manually change the version in the JSON stored in the database
         jdbcTemplate.update(
@@ -355,7 +354,7 @@ class ConversationRepositoryJdbcIntegrationTest {
         String differentOwnerId = "differentUser";
 
         // when
-        conversationRepository.update(ownerId, conversation);
+        conversationRepository.save(ownerId, conversation);
 
         // then
         assertThrows(ConversationException.class, () -> 
@@ -371,7 +370,7 @@ class ConversationRepositoryJdbcIntegrationTest {
         String differentOwnerId = "differentUser";
 
         // when
-        conversationRepository.update(ownerId, conversation);
+        conversationRepository.save(ownerId, conversation);
 
         // then
         assertThrows(ConversationException.class, () -> 

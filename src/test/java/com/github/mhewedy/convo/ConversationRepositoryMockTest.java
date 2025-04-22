@@ -40,7 +40,7 @@ class ConversationRepositoryMockTest {
     }
 
     @Test
-    void update_ShouldSetIdAndVersion_WhenNewObject() {
+    void save_ShouldSetIdAndVersion_WhenNewObject() {
         // Arrange
         TestConversation conversation = new TestConversation();
         conversation.data = "test";
@@ -48,19 +48,19 @@ class ConversationRepositoryMockTest {
         when(idGenerator.generateNewConversationId()).thenReturn(generatedId);
 
         // Act
-        conversationRepository.update("owner1", conversation);
+        conversationRepository.save("owner1", conversation);
 
         // Assert
         assertEquals(generatedId, conversation.id);
         assertEquals("1.0", conversation._version);
         assertEquals("owner1", conversation._ownerId);
-        verify(storeRepository).update(conversation);
+        verify(storeRepository).save(conversation);
     }
 
     @Test
-    void update_ShouldThrowException_WhenObjectIsNull() {
+    void save_ShouldThrowException_WhenObjectIsNull() {
         assertThrows(ConversationException.class, () ->
-                conversationRepository.update("owner1", null)
+                conversationRepository.save("owner1", null)
         );
     }
 
