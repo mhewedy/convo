@@ -45,7 +45,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class JdbcStoreRepository implements StoreRepository {
 
-    private static final String SQL_FIND = "SELECT id, expires_at, conversation_class, conversation_value FROM conversation_holder WHERE id = :id AND conversation_class = :conversation_class";
+    private static final String SQL_SELECT = "SELECT conversation_value FROM conversation_holder WHERE id = :id AND conversation_class = :conversation_class";
     private static final String SQL_INSERT = "INSERT INTO conversation_holder (id, expires_at, conversation_class, conversation_value) VALUES (:id, :expires_at, :conversation_class, :conversation_value)";
     private static final String SQL_UPDATE = "UPDATE conversation_holder SET conversation_value = :conversation_value, expires_at = :expires_at WHERE id = :id and conversation_class = :conversation_class";
     private static final String SQL_DELETE = "DELETE FROM conversation_holder WHERE id = :id and conversation_class = :conversation_class";
@@ -70,7 +70,7 @@ public class JdbcStoreRepository implements StoreRepository {
     @Override
     @Transactional
     public <T extends AbstractConversationHolder> void update(T t) {
-        var exists = jdbcTemplate.query(SQL_FIND, createParams(t.id, t.getClass()), ResultSet::next);
+        var exists = jdbcTemplate.query(SQL_SELECT, createParams(t.id, t.getClass()), ResultSet::next);
         t._expiresAt = Instant.now().plus(Util.getTimeToLive(t));
 
         if (Boolean.TRUE.equals(exists)) {
@@ -85,7 +85,7 @@ public class JdbcStoreRepository implements StoreRepository {
     public <T extends AbstractConversationHolder> Optional<T> findById(String id, Class<T> clazz) {
         log.trace("find conversation with id: {}, class: {}", id, clazz.getSimpleName());
         try {
-            T value = jdbcTemplate.queryForObject(SQL_FIND, createParams(id, clazz),
+            T value = jdbcTemplate.queryForObject(SQL_SELECT, createParams(id, clazz),
                     (rs, rowNum) -> fromJson(rs.getString("conversation_value"), clazz));
 
             if (value == null || Instant.now().isAfter(value._expiresAt)) {
