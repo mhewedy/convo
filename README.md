@@ -21,7 +21,7 @@ For Spring Boot 3.x:
 <dependency>
     <groupId>com.github.mhewedy</groupId>
     <artifactId>convo</artifactId>
-    <version>0.1.4</version>
+    <version>0.1.5</version>
 </dependency>
 ```
 
