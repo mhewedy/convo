@@ -3,7 +3,7 @@ create table conversation_holder
     id                 varchar(50) primary key,
     expires_at         datetime,
     conversation_class varchar(500),
-    conversation_value varchar(8000)
+    conversation_value varchar(max)
 );
 
 -- optional
