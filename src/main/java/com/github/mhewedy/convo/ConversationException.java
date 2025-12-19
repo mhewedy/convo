@@ -24,7 +24,7 @@ public class ConversationException extends RuntimeException {
      * </pre>
      */
     public ConversationException(String message, String key, Object value) {
-        this(message, Map.of(key, value));
+        this(message, Map.of(key, value == null ? "" : value));
     }
 
 

@@ -14,7 +14,7 @@ public class RedisStoreRepository implements StoreRepository {
     }
 
     @Override
-    public <T extends AbstractConversationHolder> void update(T t) {
+    public <T extends AbstractConversationHolder> void save(T t) {
         redisTemplate.opsForValue().set(t.id, t, Util.getTimeToLive(t));
     }
 
@@ -25,7 +25,7 @@ public class RedisStoreRepository implements StoreRepository {
     }
 
     @Override
-    public <T extends AbstractConversationHolder> void remove(T it) {
+    public <T extends AbstractConversationHolder> void delete(T it) {
         redisTemplate.delete(it.id);
     }
 }
