@@ -1,7 +1,6 @@
 package com.github.mhewedy.convo.store;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.github.mhewedy.convo.AbstractConversationHolder;
 import com.github.mhewedy.convo.ConversationException;
 import com.github.mhewedy.convo.config.ConvoProperties;
@@ -153,14 +152,9 @@ public class JdbcStoreRepository implements StoreRepository {
     }
 
     private <T extends AbstractConversationHolder> String toJson(T t) throws RuntimeException {
-        try {
-            return objectMapper.writeValueAsString(t);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+        return objectMapper.writeValueAsString(t);
     }
 
-    @SneakyThrows({JsonProcessingException.class})
     private <T extends AbstractConversationHolder> T fromJson(String str, Class<T> clazz) {
         return objectMapper.readValue(str, clazz);
     }

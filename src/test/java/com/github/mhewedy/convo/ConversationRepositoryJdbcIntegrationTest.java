@@ -1,6 +1,5 @@
 package com.github.mhewedy.convo;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.mhewedy.convo.annotations.Step;
 import com.github.mhewedy.convo.annotations.TimeToLive;
 import com.github.mhewedy.convo.annotations.Version;
@@ -9,11 +8,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 import java.util.UUID;
@@ -243,7 +243,7 @@ class ConversationRepositoryJdbcIntegrationTest {
         String ownerId = "testUser";
 
         // when & then
-        assertThrows(ConversationException.class, () -> 
+        assertThrows(ConversationException.class, () ->
                 conversationRepository.save(ownerId, null));
     }
 
@@ -254,7 +254,7 @@ class ConversationRepositoryJdbcIntegrationTest {
         String nonExistentId = UUID.randomUUID().toString();
 
         // when & then
-        assertThrows(ConversationException.class, () -> 
+        assertThrows(ConversationException.class, () ->
                 conversationRepository.findById(ownerId, nonExistentId, TestConversation.class));
     }
 
@@ -317,7 +317,7 @@ class ConversationRepositoryJdbcIntegrationTest {
 
         // then
         // Short-lived should be expired
-        assertThrows(ConversationException.class, () -> 
+        assertThrows(ConversationException.class, () ->
                 conversationRepository.findById(ownerId, shortLived.id, ShortLivedConversation.class));
 
         // Longer-lived should still exist
@@ -341,7 +341,7 @@ class ConversationRepositoryJdbcIntegrationTest {
                 Map.of("id", conversation.id));
 
         // when & then
-        assertThrows(ConversationException.class, () -> 
+        assertThrows(ConversationException.class, () ->
                 conversationRepository.findById(ownerId, conversation.id, TestConversation.class));
     }
 
@@ -357,7 +357,7 @@ class ConversationRepositoryJdbcIntegrationTest {
         conversationRepository.save(ownerId, conversation);
 
         // then
-        assertThrows(ConversationException.class, () -> 
+        assertThrows(ConversationException.class, () ->
                 conversationRepository.findById(differentOwnerId, conversation.id, TestConversation.class));
     }
 
@@ -373,7 +373,7 @@ class ConversationRepositoryJdbcIntegrationTest {
         conversationRepository.save(ownerId, conversation);
 
         // then
-        assertThrows(ConversationException.class, () -> 
+        assertThrows(ConversationException.class, () ->
                 conversationRepository.delete(differentOwnerId, conversation.id, TestConversation.class));
     }
 

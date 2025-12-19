@@ -15,6 +15,16 @@
 
 ## Installation
 
+For Spring Boot 4.x:
+
+```xml
+<dependency>
+    <groupId>com.github.mhewedy</groupId>
+    <artifactId>convo</artifactId>
+    <version>0.2.0</version>
+</dependency>
+```
+
 For Spring Boot 3.x:
 
 ```xml

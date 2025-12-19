@@ -1,6 +1,6 @@
 package com.github.mhewedy.convo;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.github.mhewedy.convo.annotations.Step;
 import com.github.mhewedy.convo.annotations.Version;
 import com.github.mhewedy.convo.store.StoreRepository;
