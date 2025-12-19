@@ -1,6 +1,5 @@
 package com.github.mhewedy.convo.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.mhewedy.convo.AbstractConversationHolder;
 import com.github.mhewedy.convo.ConversationFilter;
 import com.github.mhewedy.convo.ConversationRepository;
@@ -18,10 +17,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.transaction.support.TransactionTemplate;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -56,12 +56,13 @@ public class ConvoAutoConfiguration {
         @Bean
         @ConditionalOnMissingBean
         @ConditionalOnProperty(value = "convo.store", havingValue = "redis", matchIfMissing = true)
-        public RedisTemplate<String, AbstractConversationHolder> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+        public RedisTemplate<String, AbstractConversationHolder> redisTemplate(RedisConnectionFactory redisConnectionFactory,
+                                                                               ObjectMapper objectMapper) {
             RedisTemplate<String, AbstractConversationHolder> template = new RedisTemplate<>();
             template.setConnectionFactory(redisConnectionFactory);
 
             template.setKeySerializer(new StringRedisSerializer());
-            template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+            template.setValueSerializer(new GenericJacksonJsonRedisSerializer(objectMapper));
 
             return template;
         }

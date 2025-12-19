@@ -4,6 +4,16 @@ The Conversation Repository abstracts how to hold data between multiple API call
 It protects against malicious user behavior by skipping API calls or trying to jump between them.
 
 ## Install
+For spring-boot 4.x:
+```xml
+
+<dependency>
+    <groupId>com.github.mhewedy</groupId>
+    <artifactId>convo</artifactId>
+    <version>0.2.0</version>
+</dependency>
+```
+
 For spring-boot 3.x:
 ```xml
 

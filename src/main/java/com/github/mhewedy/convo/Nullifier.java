@@ -1,7 +1,6 @@
 package com.github.mhewedy.convo;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.github.mhewedy.convo.annotations.Step;
 import com.github.mhewedy.convo.store.StoreRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +48,7 @@ class Nullifier {
             }
             return field.getAnnotation(Step.class).value();
         });
-        if (steps.size() == 0) return;
+        if (steps.isEmpty()) return;
 
         List<Integer> sortedUniqueSteps = steps.stream().sorted().distinct().toList();
 
@@ -96,10 +95,6 @@ class Nullifier {
 
     private <T> String asJson(T t) {
         if (t == null) return "";
-        try {
-            return objectMapper.writeValueAsString(t);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+        return objectMapper.writeValueAsString(t);
     }
 }

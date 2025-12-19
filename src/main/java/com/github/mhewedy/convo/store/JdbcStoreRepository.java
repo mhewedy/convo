@@ -1,7 +1,6 @@
 package com.github.mhewedy.convo.store;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.github.mhewedy.convo.AbstractConversationHolder;
 import com.github.mhewedy.convo.ConversationException;
 import com.github.mhewedy.convo.config.ConvoProperties;
@@ -86,13 +85,7 @@ public class JdbcStoreRepository implements StoreRepository {
                             "id", id,
                             "conversation_class", clazz.getSimpleName()
                     )),
-                    (rs, rowNum) -> {
-                        try {
-                            return objectMapper.readValue(rs.getString("conversation_value"), clazz);
-                        } catch (JsonProcessingException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
+                    (rs, rowNum) -> objectMapper.readValue(rs.getString("conversation_value"), clazz)
             );
             if (Instant.now().isAfter(value._expiresAt)) {
                 if (log.isDebugEnabled()) {
@@ -170,7 +163,7 @@ public class JdbcStoreRepository implements StoreRepository {
         map.put("version", t._version);
         map.put("expires_at", Timestamp.from(t._expiresAt));
         map.put("conversation_class", t.getClass().getSimpleName());
-        map.put("conversation_value", toJson(t));
+        map.put("conversation_value", objectMapper.writeValueAsString(t));
         int update = jdbcTemplate.update("""
                         INSERT INTO conversation_holder (id, owner_id, version, expires_at, conversation_class, conversation_value)
                         VALUES (:id, :owner_id, :version, :expires_at, :conversation_class, :conversation_value)
@@ -195,20 +188,12 @@ public class JdbcStoreRepository implements StoreRepository {
                 new MapSqlParameterSource(Map.of(
                         "id", t.id,
                         "conversation_class", t.getClass().getSimpleName(),
-                        "conversation_value", toJson(t),
+                        "conversation_value", objectMapper.writeValueAsString(t),
                         "expires_at", Timestamp.from(t._expiresAt)
                 ))
         );
         if (update != 1) {
             throw new ConversationException("failed to update object");
-        }
-    }
-
-    private <T extends AbstractConversationHolder> String toJson(T t) throws RuntimeException {
-        try {
-            return objectMapper.writeValueAsString(t);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
         }
     }
 }

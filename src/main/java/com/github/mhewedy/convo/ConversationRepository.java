@@ -1,10 +1,10 @@
 package com.github.mhewedy.convo;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.jspecify.annotations.Nullable;
+import tools.jackson.databind.ObjectMapper;
 import com.github.mhewedy.convo.annotations.Version;
 import com.github.mhewedy.convo.store.StoreRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.Nullable;
 
 import java.util.Map;
 
